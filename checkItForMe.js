@@ -11,7 +11,7 @@
 (function() {
     'use strict';
 
-    var RELOAD_DELAY = 10;
+    var RELOAD_DELAY = 60;
 
     $(document).ready(function() {
         scanHash();
@@ -45,7 +45,12 @@
 
     function scanRaffles() {
 
-        scrollToBottom();
+        $.when(scrollToBottom()).then(function() {
+            $('div.panel-raffle').each(function(item) {
+                // DEBUG:
+                console.log(item);
+            });
+        });
 
         // $(".panel").each(function() {
         //     pc++;
@@ -80,22 +85,23 @@
     }
 
     function scrollToBottom() {
-        var cId = "raffles-list",
-            keepScrolling = true,
-            pageLoadingText,
-            loadingDoneLabel = "That's all, no more!";
+        var deferred = jQuery.Deferred(),
+            keepScrolling = true;
 
-        var scrollTimeout = setTimeout(function() {
+        var scrollInterval = setInterval(function() {
 
             if (keepScrolling) {
-                $("html, body").animate({scrollTop: $(document).height()}, 100);
+                $('html, body').animate({scrollTop: $(document).height()}, 500);
             } else {
-                clearTimeout(srollTimeout);
+                deferred.resolve();
+                clearInterval(scrollInterval);
             }
 
-            keepScrolling = ($(".pag-loading").text() === "That's all, no more!");
+            keepScrolling = !($('.pag-loading').text() === 'That\'s all, no more!');
 
-        }, 500);
+        }, 1000);
+
+        return deferred.promise();
 
     }
 
