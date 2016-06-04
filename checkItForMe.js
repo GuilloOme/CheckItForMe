@@ -12,7 +12,7 @@
     'use strict';
 
     var RELOAD_DELAY = 60,
-        ENTERING_DELAY = 2;
+        ENTERING_DELAY = 3;
 
     var todoRaffleList = [],
         raffleIndex = 0;
@@ -32,7 +32,7 @@
 
             setTimeout(function() {
                 location.reload();
-            }, RELOAD_DELAY * 1000);
+            }, randomInterval(RELOAD_DELAY));
         }
 
     }
@@ -51,23 +51,19 @@
     }
 
     function enterRaffles(raffleList){
-        console.log('enter raffles:',raffleList);
+        console.log('entering raffles:',raffleList.length);
 
         function joinRaffle(url){
             var currentChildWindow = window.open(url);
 
             $(currentChildWindow.document).ready(function(){
                 var waitInterval;
-                console.log('entrering raffle:',url);
+                console.log('entrering raffle: '+(raffleIndex+1)+'/'+raffleList.length);
 
                 waitInterval= setInterval(function() {
                     console.log('waiting confirmation…');
 
-                    if($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle'){
-
-                        $(currentChildWindow.document).find('button#raffle-enter').trigger( 'click' );
-
-                    }else if($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildWindow.document).find('div.alert-error').css('display') !== 'none'){
+                    if($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildWindow.document).find('div.alert-error').length > 0){
 
                         console.log('closing window');
 
@@ -77,13 +73,17 @@
                         if(raffleIndex < todoRaffleList.length){
                             setTimeout(function() {
                                 joinRaffle(todoRaffleList[raffleIndex]);
-                            }, ENTERING_DELAY*1000);
+                            }, randomInterval(ENTERING_DELAY));
                         }
 
                         clearInterval(waitInterval);
 
+                    } else if($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle'){
+
+                        $(currentChildWindow.document).find('button#raffle-enter').trigger( 'click' );
+
                     }
-                },1000);
+                }, randomInterval(ENTERING_DELAY));
 
 
 
@@ -104,7 +104,7 @@
         var scrollInterval = setInterval(function() {
 
             if (keepScrolling) {
-                $('html, body').animate({scrollTop: $(document).height()}, 50);
+                $('html, body').animate({scrollTop: $(document).height()}, 500);
             } else {
                 deferred.resolve();
                 clearInterval(scrollInterval);
@@ -112,9 +112,16 @@
 
             keepScrolling = !($('.pag-loading').text() === 'That\'s all, no more!');
 
-        }, 100);
+        }, randomInterval());
 
         return deferred.promise();
 
     }
+    function randomInterval(delay){
+        if(!delay){
+            delay = 1;
+        }
+        return (delay*1000)+Math.floor(Math.random()*(delay*1000));
+    }
+
 })();
