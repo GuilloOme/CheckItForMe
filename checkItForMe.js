@@ -38,11 +38,15 @@
 	function scanRaffles() {
 
 		$.when(scrollToBottom()).then(function() {
-			$('div.panel-raffle').each(function(id, item) {
+			var rafflePanel = $('div.panel')[$('div.panel').length-1];
+
+			$(rafflePanel).find('div.panel-raffle').each(function(id, item) {
 				if($(item).css('opacity') === '1'){
 					todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
 				}
 			});
+
+
 
 			if(todoRaffleList.length >0){
 				$.when(enterRaffles()).then(function(){
@@ -55,13 +59,18 @@
 					location.reload();
 				}, randomInterval(RELOAD_DELAY));
 			}
+
+
+
 		});
 	}
 
 	function enterRaffles(){
 		var deferred = jQuery.Deferred();
 
+
 		console.log('entering raffles:',todoRaffleList.length);
+
 
 		function joinRaffle(url){
 			var currentChildWindow = window.open(url);
