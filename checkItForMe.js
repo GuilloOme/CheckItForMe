@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.9
+// @version      0.10
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -54,11 +54,8 @@
                 console.log('Bot: Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
-                    console.log('Bot: Done entering raffles, waiting ' + (interval/1000) + ' sec before reloading…');
-
-                    setTimeout(function() {
-                        location.reload();
-                    }, interval);
+                    console.log('Bot: Done entering raffles, reloading…');
+                    location.reload();
                 });
             } else {
                 console.log('Bot: No raffle to enter, waiting ' + (interval/1000) + ' sec before reloading…');
