@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
+// @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
 // @grant        none
 // ==/UserScript==
 
@@ -17,9 +17,6 @@
         raffleIndex = 0;
 
     $(document).ready(function() {
-
-        // DEBUG:
-        console.log('dbg', ScrapTF.Raffles.Pagination.isDone);
         scanHash();
     });
 
@@ -40,25 +37,27 @@
 
     function scanRaffles() {
 
-        $.when(scrollToBottom()).then(function() {
-            $('div.panel-raffle').each(function(id, item) {
-                if ($(item).css('opacity') === '1') {
-                    todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
-                }
-            });
+        do {
+            ScrapTF.Raffles.Pagination.LoadNext();
+        } while (!ScrapTF.Raffles.Pagination.isDone);
 
-            if (todoRaffleList.length > 0) {
-                $.when(enterRaffles()).then(function() {
-                    setTimeout(function() {
-                        location.reload();
-                    }, randomInterval(RELOAD_DELAY));
-                });
-            } else {
+        $('div.panel-raffle').each(function(id, item) {
+            if ($(item).css('opacity') === '1') {
+                todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
+            }
+        });
+
+        if (todoRaffleList.length > 0) {
+            $.when(enterRaffles()).then(function() {
                 setTimeout(function() {
                     location.reload();
                 }, randomInterval(RELOAD_DELAY));
-            }
-        });
+            });
+        } else {
+            setTimeout(function() {
+                location.reload();
+            }, randomInterval(RELOAD_DELAY));
+        }
     }
 
     function enterRaffles() {
@@ -113,7 +112,7 @@
 
         var value = $('div.panel-body>div.text-center>i18n>var').text(),
             ar = value.match(/[0-9]+/gi);
-        return (ar.length > 1 && ar[0] < ar[1]);
+        return (ar.length > 1 && parseInt(ar[0]) < parseInt(ar[1]));
     }
 
     function scrollToBottom() {
