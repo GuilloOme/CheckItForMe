@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.3
+// @version      0.4
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -17,6 +17,7 @@
         raffleIndex = 0;
 
     $(document).ready(function() {
+        console.log('Bot: Started');
         scanHash();
     });
 
@@ -28,15 +29,19 @@
         if (url.match(baseUrl) && isThereNewRaffles()) {
             scanRaffles();
         } else {
+            var interval = randomInterval(RELOAD_DELAY);
+
+            console.log('Bot: Nothing to do, waiting ' + interval + ' sec before reloading…');
+
             setTimeout(function() {
                 location.reload();
-            }, randomInterval(RELOAD_DELAY));
+            }, interval);
         }
 
     }
 
     function scanRaffles() {
-
+        console.log('Bot: Loading all the raffles…');
         do {
             ScrapTF.Raffles.Pagination.LoadNext();
         } while (!ScrapTF.Raffles.Pagination.isDone);
@@ -48,12 +53,15 @@
         });
 
         if (todoRaffleList.length > 0) {
+            console.log('Bot: Start entering raffles.');
+
             $.when(enterRaffles()).then(function() {
                 setTimeout(function() {
                     location.reload();
                 }, randomInterval(RELOAD_DELAY));
             });
         } else {
+            console.log('Bot: No raffle to enter.');
             setTimeout(function() {
                 location.reload();
             }, randomInterval(RELOAD_DELAY));
@@ -63,21 +71,19 @@
     function enterRaffles() {
         var deferred = jQuery.Deferred();
 
-        console.log('entering raffles:', todoRaffleList.length);
-
         function joinRaffle(url) {
             var currentChildWindow = window.open(url);
 
             $(currentChildWindow.document).ready(function() {
                 var waitInterval;
-                console.log('entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                 waitInterval = setInterval(function() {
-                    console.log('waiting confirmation…');
+                    console.log('Bot: Waiting confirmation…');
 
                     if ($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildWindow.document).find('div.alert-error').length > 0) {
 
-                        console.log('closing window');
+                        console.log('Bot: Closing raffle window');
 
                         currentChildWindow.close();
 
@@ -111,8 +117,12 @@
     function isThereNewRaffles() {
 
         var value = $('div.panel-body>div.text-center>i18n>var').text(),
-            ar = value.match(/[0-9]+/gi);
-        return (ar.length > 1 && parseInt(ar[0]) < parseInt(ar[1]));
+            ar = value.match(/[0-9]+/gi),
+            raffleToEnterNumber = (parseInt(ar[0]) - parseInt(ar[1]));
+
+        console.log('Bot: There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
+
+        return (ar.length > 1 && raffleToEnterNumber > 0);
     }
 
     function scrollToBottom() {
