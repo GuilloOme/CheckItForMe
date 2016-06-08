@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.8
+// @version      0.9
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -58,13 +58,13 @@
 
                     setTimeout(function() {
                         location.reload();
-                    }, randomInterval(interval));
+                    }, interval);
                 });
             } else {
                 console.log('Bot: No raffle to enter, waiting ' + (interval/1000) + ' sec before reloading…');
                 setTimeout(function() {
                     location.reload();
-                }, randomInterval(interval));
+                }, interval);
             }
         });
 
