@@ -30,7 +30,7 @@
         if (url.match(baseUrl) && isThereNewRaffles()) {
             scanRaffles();
         } else {
-            console.log('Bot: Nothing to do, waiting ' + (interval/1000) + ' sec before reloading…');
+            console.log('Bot: Nothing to do, waiting ' + (interval / 1000) + ' sec before reloading…');
 
             setTimeout(function() {
                 location.reload();
@@ -58,7 +58,7 @@
                     location.reload();
                 });
             } else {
-                console.log('Bot: No raffle to enter, waiting ' + (interval/1000) + ' sec before reloading…');
+                console.log('Bot: No raffle to enter, waiting ' + (interval / 1000) + ' sec before reloading…');
                 setTimeout(function() {
                     location.reload();
                 }, interval);
@@ -71,20 +71,36 @@
         var deferred = jQuery.Deferred();
 
         function joinRaffle(url) {
-            var currentChildWindow = window.open(url);
 
-            $(currentChildWindow.document).ready(function() {
+            var id, hash;
+
+            ScrapTF.Raffles.EnterRaffle = function(idArg, hashArg) {
+                id = idArg;
+                hash = hashArg;
+            }
+
+            $.get(url, function(responseData) {
+
+                $(data).find('button#raffle-enter').click();
+
+                // DEBUG:
+                console.log('id', id, 'hash', hash);
+            });
+
+            var currentChildFrame = window.open(url);
+
+            $(currentChildFrame.document).ready(function() {
                 var waitInterval;
                 console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                 waitInterval = setInterval(function() {
                     console.log('Bot: Waiting confirmation…');
 
-                    if ($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildWindow.document).find('div.alert-error').length > 0) {
+                    if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildFrame.document).find('div.alert-error').length > 0) {
 
                         console.log('Bot: Closing raffle window');
 
-                        currentChildWindow.close();
+                        currentChildFrame.close();
 
                         raffleIndex++;
                         if (raffleIndex < todoRaffleList.length) {
@@ -97,9 +113,9 @@
 
                         clearInterval(waitInterval);
 
-                    } else if ($(currentChildWindow.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
+                    } else if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
 
-                        $(currentChildWindow.document).find('button#raffle-enter').trigger('click');
+                        $(currentChildFrame.document).find('button#raffle-enter').trigger('click');
 
                     }
                 }, randomInterval(ENTERING_DELAY));
