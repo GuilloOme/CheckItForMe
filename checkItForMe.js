@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.10
+// @version      0.11
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -119,6 +119,7 @@
             ar = value.match(/[0-9]+/gi),
             raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
 
+        console.log('Bot: Current state: ' + value);
         console.log('Bot: There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
 
         return (ar.length > 1 && raffleToEnterNumber > 0);
