@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.5
+// @version      0.6
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -42,30 +42,31 @@
 
     function scanRaffles() {
         console.log('Bot: Loading all the raffles…');
-        do {
-            ScrapTF.Raffles.Pagination.LoadNext();
-        } while (!ScrapTF.Raffles.Pagination.isDone);
 
-        $('div.panel-raffle').each(function(id, item) {
-            if ($(item).css('opacity') === '1') {
-                todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
-            }
-        });
+        $.when(loadAllRaffles()).then(function() {
 
-        if (todoRaffleList.length > 0) {
-            console.log('Bot: Start entering raffles.');
+            $('div.panel-raffle').each(function(id, item) {
+                if ($(item).css('opacity') === '1') {
+                    todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
+                }
+            });
 
-            $.when(enterRaffles()).then(function() {
+            if (todoRaffleList.length > 0) {
+                console.log('Bot: Start entering raffles.');
+
+                $.when(enterRaffles()).then(function() {
+                    setTimeout(function() {
+                        location.reload();
+                    }, randomInterval(RELOAD_DELAY));
+                });
+            } else {
+                console.log('Bot: No raffle to enter.');
                 setTimeout(function() {
                     location.reload();
                 }, randomInterval(RELOAD_DELAY));
-            });
-        } else {
-            console.log('Bot: No raffle to enter.');
-            setTimeout(function() {
-                location.reload();
-            }, randomInterval(RELOAD_DELAY));
-        }
+            }
+        });
+
     }
 
     function enterRaffles() {
@@ -125,20 +126,17 @@
         return (ar.length > 1 && raffleToEnterNumber > 0);
     }
 
-    function scrollToBottom() {
-        var deferred = jQuery.Deferred(),
-            keepScrolling = true;
+    function loadAllRaffles() {
+        var deferred = jQuery.Deferred();
 
-        var scrollInterval = setInterval(function() {
+        var loadInterval = setInterval(function() {
 
-            if (keepScrolling) {
-                $('html, body').animate({scrollTop: $(document).height()}, 500);
+            if (!ScrapTF.Raffles.Pagination.isDone) {
+                ScrapTF.Raffles.Pagination.LoadNext()
             } else {
                 deferred.resolve();
-                clearInterval(scrollInterval);
+                clearInterval(loadInterval);
             }
-
-            keepScrolling = !($('.pag-loading').text() === 'That\'s all, no more!');
 
         }, randomInterval());
 
@@ -153,4 +151,5 @@
         return (delay * 1000) + Math.floor(Math.random() * (delay * 1000));
     }
 
-})();
+})
+();
