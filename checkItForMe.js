@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.6
+// @version      0.7
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -14,7 +14,8 @@
         ENTERING_DELAY = 2;
 
     var todoRaffleList = [],
-        raffleIndex = 0;
+        raffleIndex = 0,
+        interval = randomInterval(RELOAD_DELAY);
 
     $(document).ready(function() {
         console.log('Bot: Started');
@@ -29,8 +30,6 @@
         if (url.match(baseUrl) && isThereNewRaffles()) {
             scanRaffles();
         } else {
-            var interval = randomInterval(RELOAD_DELAY);
-
             console.log('Bot: Nothing to do, waiting ' + interval + ' sec before reloading…');
 
             setTimeout(function() {
@@ -55,15 +54,17 @@
                 console.log('Bot: Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
+                    console.log('Bot: Done entering raffles, waiting ' + interval + ' sec before reloading…');
+
                     setTimeout(function() {
                         location.reload();
-                    }, randomInterval(RELOAD_DELAY));
+                    }, randomInterval(interval));
                 });
             } else {
-                console.log('Bot: No raffle to enter.');
+                console.log('Bot: No raffle to enter, waiting ' + interval + ' sec before reloading…');
                 setTimeout(function() {
                     location.reload();
-                }, randomInterval(RELOAD_DELAY));
+                }, randomInterval(interval));
             }
         });
 
@@ -132,7 +133,7 @@
         var loadInterval = setInterval(function() {
 
             if (!ScrapTF.Raffles.Pagination.isDone) {
-                ScrapTF.Raffles.Pagination.LoadNext()
+                ScrapTF.Raffles.Pagination.LoadNext();
             } else {
                 deferred.resolve();
                 clearInterval(loadInterval);
@@ -146,9 +147,9 @@
 
     function randomInterval(delay) {
         if (!delay) {
-            delay = 1;
+            delay = 0.5;
         }
-        return (delay * 1000) + Math.floor(Math.random() * (delay * 1000));
+        return Math.floor(delay * 1000) + Math.floor(Math.random() * (delay * 1000));
     }
 
 })
