@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.13
+// @version      0.14
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -106,8 +106,12 @@
                         password: '',
                         hash: hash
                     }, function() {
+                        console.log('Bot: Done entering raffle');
+
                         raffleDeferred.resolve();
                     }, function() {
+                        console.log('Bot: Error when entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+
                         raffleDeferred.resolve();
                     });
 
