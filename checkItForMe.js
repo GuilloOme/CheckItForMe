@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.11
+// @version      0.12
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -43,8 +43,8 @@
         console.log('Bot: Loading all the raffles…');
 
         $.when(loadAllRaffles()).then(function() {
-
-            $('div.panel-raffle').each(function(id, item) {
+            var activePanel = $('div.panel');
+            $(activePanel[activePanel.length-1]).find('div.panel-raffle').each(function(id, item) {
                 if ($(item).css('opacity') === '1') {
                     todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
                 }
@@ -71,7 +71,7 @@
         var deferred = jQuery.Deferred();
 
         function joinRaffle(url) {
-
+/*
             var id, hash;
 
             ScrapTF.Raffles.EnterRaffle = function(idArg, hashArg) {
@@ -86,7 +86,7 @@
                 // DEBUG:
                 console.log('id', id, 'hash', hash);
             });
-
+*/
             var currentChildFrame = window.open(url);
 
             $(currentChildFrame.document).ready(function() {
