@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.12
+// @version      0.13
 // @match        https://scrap.tf/raffles
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
@@ -44,7 +44,7 @@
 
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
-            $(activePanel[activePanel.length-1]).find('div.panel-raffle').each(function(id, item) {
+            $(activePanel[activePanel.length - 1]).find('div.panel-raffle').each(function(id, item) {
                 if ($(item).css('opacity') === '1') {
                     todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
                 }
@@ -71,7 +71,7 @@
         var deferred = jQuery.Deferred();
 
         function joinRaffle(url) {
-/*
+
             var id, hash;
 
             ScrapTF.Raffles.EnterRaffle = function(idArg, hashArg) {
@@ -81,46 +81,88 @@
 
             $.get(url, function(responseData) {
 
-                $(data).find('button#raffle-enter').click();
+                var request,
+                    raffleDeferred = jQuery.Deferred(),
+                    raffleKey = $(responseData).find("#raffle-key").val(),
+                    enterButton = $(responseData).find('button#raffle-enter');
 
-                // DEBUG:
-                console.log('id', id, 'hash', hash);
-            });
-*/
-            var currentChildFrame = window.open(url);
+                if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
+                    console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
-            $(currentChildFrame.document).ready(function() {
-                var waitInterval;
-                console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    $(responseData).find('button#raffle-enter').click();
 
-                waitInterval = setInterval(function() {
-                    console.log('Bot: Waiting confirmation…');
+                    request = {
+                        raffle: id,
+                        captcha: '',
+                        rafflekey: raffleKey,
+                        password: '',
+                        hash: hash
+                    };
 
-                    if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildFrame.document).find('div.alert-error').length > 0) {
+                    ScrapTF.Ajax('viewraffle/EnterRaffle', {
+                        raffle: id,
+                        captcha: '',
+                        rafflekey: raffleKey,
+                        password: '',
+                        hash: hash
+                    }, function() {
+                        raffleDeferred.resolve();
+                    }, function() {
+                        raffleDeferred.resolve();
+                    });
 
-                        console.log('Bot: Closing raffle window');
+                } else {
+                    console.log('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    raffleDeferred.resolve();
+                }
 
-                        currentChildFrame.close();
-
-                        raffleIndex++;
-                        if (raffleIndex < todoRaffleList.length) {
-                            setTimeout(function() {
-                                joinRaffle(todoRaffleList[raffleIndex]);
-                            }, randomInterval(ENTERING_DELAY));
-                        } else {
-                            deferred.resolve();
-                        }
-
-                        clearInterval(waitInterval);
-
-                    } else if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
-
-                        $(currentChildFrame.document).find('button#raffle-enter').trigger('click');
-
+                $.when(raffleDeferred.promise()).then(function() {
+                    raffleIndex++;
+                    if (raffleIndex < todoRaffleList.length) {
+                        setTimeout(function() {
+                            joinRaffle(todoRaffleList[raffleIndex]);
+                        }, randomInterval(ENTERING_DELAY));
+                    } else {
+                        deferred.resolve();
                     }
-                }, randomInterval(ENTERING_DELAY));
+                });
 
             });
+
+            /* var currentChildFrame = window.open(url);
+
+             $(currentChildFrame.document).ready(function() {
+             var waitInterval;
+             console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+
+             waitInterval = setInterval(function() {
+             console.log('Bot: Waiting confirmation…');
+
+             if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Leave Raffle' || $(currentChildFrame.document).find('div.alert-error').length > 0) {
+
+             console.log('Bot: Closing raffle window');
+
+             currentChildFrame.close();
+
+             raffleIndex++;
+             if (raffleIndex < todoRaffleList.length) {
+             setTimeout(function() {
+             joinRaffle(todoRaffleList[raffleIndex]);
+             }, randomInterval(ENTERING_DELAY));
+             } else {
+             deferred.resolve();
+             }
+
+             clearInterval(waitInterval);
+
+             } else if ($(currentChildFrame.document).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
+
+             $(currentChildFrame.document).find('button#raffle-enter').trigger('click');
+
+             }
+             }, randomInterval(ENTERING_DELAY));
+
+             });*/
 
         }
 
