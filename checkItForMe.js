@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.14
+// @version      0.15
 // @match        https://scrap.tf/raffles
+// @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
 // @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
 // @grant        none
@@ -18,7 +19,7 @@
         interval = randomInterval(RELOAD_DELAY);
 
     $(document).ready(function() {
-        console.log('Bot: Started');
+        console.info('Bot: Started');
         scanHash();
     });
 
@@ -30,7 +31,7 @@
         if (url.match(baseUrl) && isThereNewRaffles()) {
             scanRaffles();
         } else {
-            console.log('Bot: Nothing to do, waiting ' + (interval / 1000) + ' sec before reloading…');
+            console.info('Bot: Nothing to do, waiting ' + (interval / 1000) + ' sec before reloading…');
 
             setTimeout(function() {
                 location.reload();
@@ -40,7 +41,7 @@
     }
 
     function scanRaffles() {
-        console.log('Bot: Loading all the raffles…');
+        console.info('Bot: Loading all the raffles…');
 
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
@@ -51,14 +52,14 @@
             });
 
             if (todoRaffleList.length > 0) {
-                console.log('Bot: Start entering raffles.');
+                console.info('Bot: Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
-                    console.log('Bot: Done entering raffles, reloading…');
+                    console.info('Bot: Done entering raffles, reloading…');
                     location.reload();
                 });
             } else {
-                console.log('Bot: No raffle to enter, waiting ' + (interval / 1000) + ' sec before reloading…');
+                console.info('Bot: No raffle to enter, waiting ' + (interval / 1000) + ' sec before reloading…');
                 setTimeout(function() {
                     location.reload();
                 }, interval);
@@ -87,7 +88,7 @@
                     enterButton = $(responseData).find('button#raffle-enter');
 
                 if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
-                    console.log('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    console.info('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                     $(responseData).find('button#raffle-enter').click();
 
@@ -106,17 +107,17 @@
                         password: '',
                         hash: hash
                     }, function() {
-                        console.log('Bot: Done entering raffle');
+                        console.info('Bot: Done entering raffle');
 
                         raffleDeferred.resolve();
                     }, function() {
-                        console.log('Bot: Error when entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                        console.warn('Bot: Error when entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                         raffleDeferred.resolve();
                     });
 
                 } else {
-                    console.log('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    console.warn('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                     raffleDeferred.resolve();
                 }
 
@@ -181,8 +182,8 @@
             ar = value.match(/[0-9]+/gi),
             raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
 
-        console.log('Bot: Current state: ' + value);
-        console.log('Bot: There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
+        console.info('Bot: Current state: ' + value);
+        console.info('Bot: There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
 
         return (ar.length > 1 && raffleToEnterNumber > 0);
     }
