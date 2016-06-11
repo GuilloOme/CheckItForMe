@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.15
+// @version      0.16
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -41,7 +41,7 @@
     }
 
     function scanRaffles() {
-        console.info('Bot: Loading all the raffles…');
+        //console.info('Bot: Loading all the raffles…');
 
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
@@ -52,10 +52,10 @@
             });
 
             if (todoRaffleList.length > 0) {
-                console.info('Bot: Start entering raffles.');
+                //console.info('Bot: Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
-                    console.info('Bot: Done entering raffles, reloading…');
+                    //console.info('Bot: Done entering raffles, reloading…');
                     location.reload();
                 });
             } else {
@@ -182,8 +182,7 @@
             ar = value.match(/[0-9]+/gi),
             raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
 
-        console.info('Bot: Current state: ' + value);
-        console.info('Bot: There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
+        console.info('Bot: ' + value + ', There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
 
         return (ar.length > 1 && raffleToEnterNumber > 0);
     }
