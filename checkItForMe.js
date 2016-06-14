@@ -11,8 +11,8 @@
 (function() {
     'use strict';
 
-    var RELOAD_DELAY = 30,
-        ENTERING_DELAY = 2;
+    var RELOAD_DELAY = 20,
+        ENTERING_DELAY = 1.5;
 
     var todoRaffleList = [],
         raffleIndex = 0,
