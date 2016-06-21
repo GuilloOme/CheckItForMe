@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.21
+// @version      0.22
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -12,6 +12,7 @@
     'use strict';
 
     var RELOAD_DELAY = 10,
+        ERROR_RELOAD_DELAY = 300,
         ENTERING_DELAY = 2.5;
 
     var todoRaffleList = [],
@@ -20,6 +21,9 @@
 
     $(document).ready(function() {
         console.info('Bot: Started');
+        if (Notification.permission !== "granted"){
+            Notification.requestPermission();
+        }
 
         if(parseInt($('.user-notices-count').html()) > 0){
             console.info('Bot: There is new message(s)!');
@@ -84,7 +88,7 @@
             ScrapTF.Raffles.EnterRaffle = function(idArg, hashArg) {
                 id = idArg;
                 hash = hashArg;
-            }
+            };
 
             $.get(url, function(responseData) {
 
@@ -121,6 +125,13 @@
 
                         if (data.captcha) {
                             showIcon('Warning');
+                            showNotification('Bot: Error when entering raffle:\nCaptcha requested!','https://scrap.tf/raffles/' + id);
+                            console.warn('Bot: Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY/60 + 'minutes…');
+
+                            setTimeout(function() {
+                                location.reload();
+                            }, ERROR_RELOAD_DELAY*1000);
+
                             raffleDeferred.reject();
                         }else{
                             raffleDeferred.resolve();
@@ -200,6 +211,19 @@
         $('link[rel*="icon"]').remove();
         $('head').append(iconLink);
 
+    }
+
+    function showNotification(msg,link){
+        if (Notification.permission === "granted") {
+            var notification = new Notification('Notification', {
+                icon: 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAADAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABwAAAAcAAAADAAAAmwAHCcIACQvCAAkLwgAJC8IACQvCAAkLwgAJDMIACQzCAAkMwgAJDMIACQzCAAkMwgAJDMIACArDAAAAmwAAAGsAbIf4AMz//wDM//8AzP//AMz//wDM//8Auun/AK/b/wDM//8AzP//AMz//wDM//8AzP//AGyH+QAAAGsAAAAZAA0QtgC24/8AzP//AMz//wDM//8AzP//Ai86/wMLDf8AwvP/AMz//wDM//8AzP//ALfk/wAOEbgAAAAZAAAAAAAAAFAAT2LqAMz//wDM//8AzP//AMz//wF/n/8CYXn/AMv+/wDM//8AzP//AMz//wBRZesAAABSAAAAAAAAAAAAAAAIAAIDngCcw/8AzP//AMz//wDM//8AeZj/AHSR/wDM//8AzP//AMz//wCfx/8AAwShAAAACQAAAAAAAAAAAAAAAAAAADgAMDzYAMr8/wDM//8AzP//ACQt/wAbIv8AzP//AMz//wDL/f8ANEHbAAAAOwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAfQB9nP4AzP//AMz//wAcI/8AFBj/AMz//wDM//8AgqP+AAAAggAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMAGB7DAL/v/wDM//8AFBn/AA0Q/wDL/v8AwvL/ABwjyAAAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXwBgePMAy/7/AA0Q/wAHCf8Ayfv/AGaA9gAAAGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEABwisAKvV/wAPE/8ACgz/AK7Z/wAKDLIAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARgBCUuIAn8f/AJzD/wBLXecAAABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAGRAI+y/wCZv/8AAQKbAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALwAlLtAALTnWAAAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABvAAAAeQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAACAAQAAwAMAAMADAADgBwAA8A8AAPAPAAD4HwAA+B8AAPw/AAD8PwAA/n8AAA==',
+                body: msg,
+            });
+            notification.onclick = function () {
+                window.open(link);
+                notification.close();
+            };
+        }
     }
 
 })
