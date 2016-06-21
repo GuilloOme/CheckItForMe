@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.22
+// @version      0.23
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -128,6 +128,10 @@
                             showNotification('Bot: Error when entering raffle:\nCaptcha requested!','https://scrap.tf/raffles/' + id);
                             console.warn('Bot: Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY/60 + 'minutes…');
 
+                            todoRaffleList.forEach(function(url){
+                                window.open(url);
+                            });
+
                             setTimeout(function() {
                                 location.reload();
                             }, ERROR_RELOAD_DELAY*1000);
@@ -226,5 +230,4 @@
         }
     }
 
-})
-();
+})();
