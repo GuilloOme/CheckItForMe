@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.23
+// @version      0.24
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -11,9 +11,9 @@
 (function() {
     'use strict';
 
-    var RELOAD_DELAY = 10,
+    var RELOAD_DELAY = 30,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 2.5;
+        ENTERING_DELAY = 4;
 
     var todoRaffleList = [],
         raffleIndex = 0,
