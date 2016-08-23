@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.25
+// @version      0.26
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -121,7 +121,7 @@
 
                         raffleDeferred.resolve();
                     }, function(data) {
-                        console.warn('Bot: Error when entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                        console.warn('Bot: Error when entering raffle: ' + raffleKey + ' ' + (raffleIndex + 1) + '/' + todoRaffleList.length, data);
 
                         if (data.captcha) {
                             showIcon('Warning');
