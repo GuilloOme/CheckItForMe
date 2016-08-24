@@ -276,17 +276,17 @@
         var isIt = false;
 
         if (raffle.count > 0) {
-            isIt = true;
-        } else if (raffle.haveSpecials) {
-            isIt = true;
-        } else if (raffle.totalEntries <= 500) {
-            isIt = true;
-        } else if (raffle.count > 10) {
-            isIt = true;
-        } else if (raffle.timeLeft < 3600 && raffle.winChance > 0) {
-            isIt = true;
+            if (raffle.haveSpecials) {
+                isIt = true;
+            } else if (raffle.totalEntries <= 500) {
+                isIt = true;
+            } else if (raffle.count > 10) {
+                isIt = true;
+            } else if (raffle.timeLeft < 3600 && raffle.winChance > 0) {
+                isIt = true;
+            }
         }
-
+        
         return isIt;
     }
 
