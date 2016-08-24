@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.29
+// @version      0.30
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -11,7 +11,7 @@
 (function() {
     'use strict';
 
-    var RELOAD_DELAY = 20,
+    var RELOAD_DELAY = 30,
         ERROR_RELOAD_DELAY = 300,
         ENTERING_DELAY = 2;
 
@@ -201,7 +201,7 @@
         if (!delay) {
             delay = 0.5;
         }
-        return Math.floor(delay * 1000) + Math.floor(Math.random() * (delay * 2 * 1000));
+        return Math.floor(delay * 1000) + Math.floor(Math.random() * (delay * 1000));
     }
 
     function showIcon(iconType) {
