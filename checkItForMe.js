@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.27
+// @version      0.28
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -13,7 +13,7 @@
 
     var RELOAD_DELAY = 20,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 4;
+        ENTERING_DELAY = 2;
 
     var todoRaffleList = [],
         raffleIndex = 0,
@@ -144,7 +144,7 @@
                     });
 
                 } else {
-                    console.warn('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    console.info('Bot: Can\'t enter raffle or it\'s not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                     raffleDeferred.resolve();
                 }
 
@@ -241,8 +241,9 @@
                 count: 0
             };
 
-        itemsData.forEach(function(itemData) {
-            var data = $(itemData);
+        for (var i = 0 ; i <= itemsData.length ; i++) {
+
+            var data = $(itemsData[i]);
 
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
@@ -266,14 +267,17 @@
                 raffle.count++;
             }
 
-        })
+        }
+
         return raffle;
     }
 
     function isRaffleWorthIt(raffle) {
-        isIt = false;
+        var isIt = false;
 
-        if (raffle.haveSpecials) {
+        if (raffle.count > 0) {
+            isIt = true;
+        } else if (raffle.haveSpecials) {
             isIt = true;
         } else if (raffle.totalEntries <= 500) {
             isIt = true;
