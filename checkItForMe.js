@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.34
+// @version      0.35
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -32,12 +32,12 @@
 
             // initiate the locals
             if (typeof localStorage.badRaffleList !== 'string') {
-                localStorage.badRaffleList = JSON.stringify([]);
+                saveBadRaffleList([]);
             }
 
             if (localStorage.badRaffleList.length > 1000) {
                 console.warning('Bot: Purging bad raffle cache!');
-                localStorage.badRaffleList = JSON.stringify([]);
+                saveBadRaffleList([]);
             } else {
                 badRaffleList = JSON.parse(localStorage.badRaffleList);
             }
@@ -86,10 +86,6 @@
 
                 $.when(enterRaffles()).then(function() {
                     //console.info('Bot: Done entering raffles, reloading…');
-                    // update localStorage
-                    if (haveStorageSupport) {
-                        localStorage.badRaffleList = JSON.stringify(badRaffleList);
-                    }
                     location.reload();
                 });
             } else {
@@ -175,6 +171,7 @@
                     }
                 } else {
                     badRaffleList.push(url);
+                    saveBadRaffleList(badRaffleList);
                     console.info('Bot: it\'s not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                     raffleDeferred.resolve();
                 }
@@ -321,6 +318,12 @@
         }
 
         return isIt;
+    }
+
+    function saveBadRaffleList(list) {
+        if (haveStorageSupport) {
+            localStorage.badRaffleList = JSON.stringify(list);
+        }
     }
 
 })();
