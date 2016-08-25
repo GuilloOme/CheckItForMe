@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.39
+// @version      0.40
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -13,7 +13,7 @@
 
     var RELOAD_DELAY = 60,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 2,
+        ENTERING_DELAY = 3,
         TOTAL_ENTRY_THRESHOLD = 500,
         RAFFLE_COUNT_THRESHOLD = 10,
         TIME_LEFT_THRESHOLD = 5400; // in sec: 5400 = 1½hour
