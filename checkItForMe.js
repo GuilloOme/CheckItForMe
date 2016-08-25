@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.37
+// @version      0.38
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -288,10 +288,13 @@
                     },
                     haveFeature = function() {
                         var classes = data.attr('class');
-                        // killstreak or rare or genuine or strange or unusuals or token
-                        return classes.match('killstreak') || classes.match('rarity') || classes.match('quality3') || classes.match('quality11') || classes.match('quality5') || classes.match('token');
+                        // killstreak or rare or vintage or genuine or strange or unusuals or token
+                        return classes.match('killstreak') || classes.match('rarity') || classes.match('quality3') || classes.match('quality1') || classes.match('quality11') || classes.match('quality5') || classes.match('token');
                     },
-                    isSpecials = isMetal() || isHat() || haveFeature();
+                    haveColor = function() {
+                        return $(data).find('div.paintcolor').length > 0 || $(data).find('img.festive').length > 0;
+                    },
+                    isSpecials = isMetal() || isHat() || haveFeature() || haveColor();
 
                 if (isSpecials) {
                     raffle.haveSpecials = true;
