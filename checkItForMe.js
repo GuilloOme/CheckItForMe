@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.33
+// @version      0.34
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -31,15 +31,15 @@
             haveStorageSupport = true;
 
             // initiate the locals
-            if (localStorage.badRaffleList === undefined) {
-                localStorage.badRaffleList = [];
+            if (typeof localStorage.badRaffleList !== 'string') {
+                localStorage.badRaffleList = JSON.stringify([]);
             }
 
             if (localStorage.badRaffleList.length > 1000) {
                 console.warning('Bot: Purging bad raffle cache!');
-                localStorage.badRaffleList = [];
+                localStorage.badRaffleList = JSON.stringify([]);
             } else {
-                badRaffleList = localStorage.badRaffleList;
+                badRaffleList = JSON.parse(localStorage.badRaffleList);
             }
         }
 
@@ -88,7 +88,7 @@
                     //console.info('Bot: Done entering raffles, reloading…');
                     // update localStorage
                     if (haveStorageSupport) {
-                        localStorage.badRaffleList = badRaffleList;
+                        localStorage.badRaffleList = JSON.stringify(badRaffleList);
                     }
                     location.reload();
                 });
