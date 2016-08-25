@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.31
+// @version      0.32
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -16,13 +16,26 @@
         ENTERING_DELAY = 2;
 
     var todoRaffleList = [],
+        badRaffleList = [],
         raffleIndex = 0,
-        interval = randomInterval(RELOAD_DELAY);
+        interval = randomInterval(RELOAD_DELAY),
+        haveStorageSupport = false;
 
     $(document).ready(function() {
         console.info('Bot: Started');
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
+        }
+
+        if (typeof(Storage) !== "undefined") {
+            haveStorageSupport = true;
+
+            if (localStorage.badRaffleList.length > 1000) {
+                console.warning('Bot: Purging bad raffle cache!');
+                localStorage.badRaffleList = [];
+            } else {
+                badRaffleList = localStorage.badRaffleList;
+            }
         }
 
         if (parseInt($('.user-notices-count').html()) > 0) {
@@ -56,8 +69,10 @@
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
             $(activePanel[activePanel.length - 1]).find('div.panel-raffle').each(function(id, item) {
-                if ($(item).css('opacity') === '1') {
-                    todoRaffleList.push($(item).find('div.raffle-name > a').attr('href'));
+                var url = $(item).find('div.raffle-name > a').attr('href');
+
+                if ($(item).css('opacity') === '1' && badRaffleList.indexOf(url) < 0) {
+                    todoRaffleList.push(url);
                 }
             });
 
@@ -66,6 +81,10 @@
 
                 $.when(enterRaffles()).then(function() {
                     //console.info('Bot: Done entering raffles, reloading…');
+                    // update localStorage
+                    if (haveStorageSupport) {
+                        localStorage.badRaffleList = badRaffleList;
+                    }
                     location.reload();
                 });
             } else {
@@ -98,53 +117,60 @@
                     enterButton = $(responseData).find('button#raffle-enter'),
                     raffleSpecs = getRaffleSpecs(responseData);
 
-                if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle' && isRaffleWorthIt(raffleSpecs)) {
-                    console.info('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                if (isRaffleWorthIt(raffleSpecs)) {
 
-                    $(responseData).find('button#raffle-enter').click();
+                    if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
+                        console.info('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
-                    request = {
-                        raffle: id,
-                        captcha: '',
-                        rafflekey: raffleKey,
-                        password: '',
-                        hash: hash
-                    };
+                        $(responseData).find('button#raffle-enter').click();
 
-                    ScrapTF.Ajax('viewraffle/EnterRaffle', {
-                        raffle: id,
-                        captcha: '',
-                        rafflekey: raffleKey,
-                        password: '',
-                        hash: hash
-                    }, function() {
-                        console.info('Bot: Done entering raffle');
+                        request = {
+                            raffle: id,
+                            captcha: '',
+                            rafflekey: raffleKey,
+                            password: '',
+                            hash: hash
+                        };
 
-                        raffleDeferred.resolve();
-                    }, function(data) {
-                        console.warn('Bot: Error when entering raffle: ' + raffleKey + ' ' + (raffleIndex + 1) + '/' + todoRaffleList.length, data);
+                        ScrapTF.Ajax('viewraffle/EnterRaffle', {
+                            raffle: id,
+                            captcha: '',
+                            rafflekey: raffleKey,
+                            password: '',
+                            hash: hash
+                        }, function() {
+                            console.info('Bot: Done entering raffle');
 
-                        if (data.captcha) {
-                            showIcon('Warning');
-                            showNotification('Bot: Error when entering raffle:\nCaptcha requested!', 'https://scrap.tf/raffles/' + id);
-                            console.warn('Bot: Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY / 60 + 'minutes…');
-
-                            todoRaffleList.forEach(function(url) {
-                                window.open(url);
-                            });
-
-                            setTimeout(function() {
-                                location.reload();
-                            }, ERROR_RELOAD_DELAY * 1000);
-
-                            raffleDeferred.reject();
-                        } else {
                             raffleDeferred.resolve();
-                        }
-                    });
+                        }, function(data) {
+                            console.warn('Bot: Error when entering raffle: ' + raffleKey + ' ' + (raffleIndex + 1) + '/' + todoRaffleList.length, data);
 
+                            if (data.captcha) {
+                                showIcon('Warning');
+                                showNotification('Bot: Error when entering raffle:\nCaptcha requested!', 'https://scrap.tf/raffles/' + id);
+                                console.warn('Bot: Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY / 60 + 'minutes…');
+
+                                todoRaffleList.forEach(function(url) {
+                                    window.open(url);
+                                });
+
+                                setTimeout(function() {
+                                    location.reload();
+                                }, ERROR_RELOAD_DELAY * 1000);
+
+                                raffleDeferred.reject();
+                            } else {
+                                raffleDeferred.resolve();
+                            }
+                        });
+
+                    } else {
+                        console.info('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                        raffleDeferred.resolve();
+                    }
                 } else {
-                    console.info('Bot: Can\'t enter raffle or it\'s not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    badRaffleList.push(url);
+                    console.info('Bot: it\'s not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                     raffleDeferred.resolve();
                 }
 
@@ -253,7 +279,7 @@
                     },
                     isMetal = function() {
                         // any metal or key
-                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Metal') ||data.attr('data-title').match('Key')) ;
+                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Metal') || data.attr('data-title').match('Key'));
                     },
                     haveFeature = function() {
                         var classes = data.attr('class');
@@ -282,13 +308,13 @@
                 isIt = true;
             } else if (raffle.totalEntries <= 500) {
                 isIt = true;
-            } else if (raffle.count > 10) {
+            } else if (raffle.count >= 10) {
                 isIt = true;
-            } else if (raffle.timeLeft < 3600 && raffle.winChance > 0) {
+            } else if (raffle.timeLeft < 7200) {
                 isIt = true;
             }
         }
-        
+
         return isIt;
     }
 
