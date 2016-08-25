@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.35
+// @version      0.36
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -13,7 +13,10 @@
 
     var RELOAD_DELAY = 30,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 2;
+        ENTERING_DELAY = 2,
+        TOTAL_ENTRY_THRESHOLD = 500,
+        RAFFLE_COUNT_THRESHOLD = 10,
+        TIME_LEFT_THRESHOLD = 5400;
 
     var todoRaffleList = [],
         badRaffleList = [],
@@ -202,7 +205,7 @@
             ar = value.match(/[0-9]+/gi),
             raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
 
-        console.info('Bot: ' + value + ', There is ' + raffleToEnterNumber + ' raffle(s) to enter.');
+        console.info('Bot: ' + value + ', There is ' + raffleToEnterNumber + ' raffle(s) open with ' + badRaffleList.length + ' raffles not worth it…');
 
         return (ar.length > 1 && raffleToEnterNumber > 0);
     }
@@ -308,11 +311,11 @@
         if (raffle.count > 0) {
             if (raffle.haveSpecials) {
                 isIt = true;
-            } else if (raffle.totalEntries <= 500) {
+            } else if (raffle.totalEntries <= TOTAL_ENTRY_THRESHOLD) {
                 isIt = true;
-            } else if (raffle.count >= 10) {
+            } else if (raffle.count >= RAFFLE_COUNT_THRESHOLD) {
                 isIt = true;
-            } else if (raffle.timeLeft < 7200) {
+            } else if (raffle.timeLeft < TIME_LEFT_THRESHOLD) {
                 isIt = true;
             }
         }
