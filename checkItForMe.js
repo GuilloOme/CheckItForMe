@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.32
+// @version      0.33
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -29,6 +29,11 @@
 
         if (typeof(Storage) !== "undefined") {
             haveStorageSupport = true;
+
+            // initiate the locals
+            if (localStorage.badRaffleList === undefined) {
+                localStorage.badRaffleList = [];
+            }
 
             if (localStorage.badRaffleList.length > 1000) {
                 console.warning('Bot: Purging bad raffle cache!');
