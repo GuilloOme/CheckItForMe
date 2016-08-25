@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.30
+// @version      0.31
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -248,10 +248,12 @@
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
                 var isHat = function() {
+                        // any cosmetic or taunt
                         return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
                     },
                     isMetal = function() {
-                        return data.attr('data-slot') === 'all' && data.attr('data-title').match('Metal');
+                        // any metal or key
+                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Metal') ||data.attr('data-title').match('Key')) ;
                     },
                     haveFeature = function() {
                         var classes = data.attr('class');
