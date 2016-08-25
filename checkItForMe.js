@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.38
+// @version      0.39
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -38,8 +38,8 @@
                 saveBadRaffleList([]);
             }
 
-            if (localStorage.badRaffleList.length > 1000) {
-                console.warning('Bot: Purging bad raffle cache!');
+            if (JSON.parse(localStorage.badRaffleList).length > 1000) {
+                console.warn('Bot: Purging bad raffle cache!');
                 saveBadRaffleList([]);
             } else {
                 badRaffleList = JSON.parse(localStorage.badRaffleList);
@@ -284,7 +284,7 @@
                     },
                     isMetal = function() {
                         // any metal or key
-                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Metal') || data.attr('data-title').match('Key'));
+                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Metal') || data.attr('data-title').match('Key') || data.attr('data-title').match('Ticket'));
                     },
                     haveFeature = function() {
                         var classes = data.attr('class');
