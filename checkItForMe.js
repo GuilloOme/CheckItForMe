@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.42
+// @version      0.43
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -22,10 +22,15 @@
         badRaffleList = [],
         raffleIndex = 0,
         interval = randomInterval(RELOAD_DELAY),
-        haveStorageSupport = false;
+        haveStorageSupport = false,
+        botPanel,
+        progressBar;
 
     $(document).ready(function() {
-        console.info('Bot: Started');
+
+        botPanel = createBotPanel();
+
+        showMessage('Started');
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
         }
@@ -39,7 +44,7 @@
             }
 
             if (JSON.parse(localStorage.badRaffleList).length > 1000) {
-                console.warn('Bot: Purging bad raffle cache!');
+                console.warn('Purging bad raffle cache!');
                 saveBadRaffleList([]);
             } else {
                 badRaffleList = JSON.parse(localStorage.badRaffleList);
@@ -47,22 +52,29 @@
         }
 
         if (parseInt($('.user-notices-count').html()) > 0) {
-            console.info('Bot: There is new message(s)!');
+            showMessage('There is new message(s)!');
             showIcon('Ok');
         }
+
 
         scanHash();
     });
 
     function scanHash() {
-        var hash = window.location.hash,
-            url = window.location.href,
+        var url = window.location.href,
             baseUrl = /https:\/\/scrap.tf\/raffles/;
 
         if (url.match(baseUrl) && isThereNewRaffles()) {
             scanRaffles();
         } else {
-            console.info('Bot: Nothing to do, waiting ' + (interval / 1000) + ' sec before reloading…');
+            showMessage('No new raffle to enter, waiting…');
+
+           progressBar = addProgress('', 0, botPanel);
+            var timer = 1;
+            setInterval(function () {
+                updateProgress(progressBar, timer / (interval / 1000));
+                timer ++;
+            },1000);
 
             setTimeout(function() {
                 location.reload();
@@ -72,7 +84,7 @@
     }
 
     function scanRaffles() {
-        //console.info('Bot: Loading all the raffles…');
+        showMessage('Loading all the raffles…');
 
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
@@ -85,14 +97,22 @@
             });
 
             if (todoRaffleList.length > 0) {
-                //console.info('Bot: Start entering raffles.');
+                //showMessage('Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
-                    //console.info('Bot: Done entering raffles, reloading…');
+                    //showMessage('Done entering raffles, reloading…');
                     location.reload();
                 });
             } else {
-                console.info('Bot: No raffle to enter, waiting ' + (interval / 1000) + ' sec before reloading…');
+                showMessage('No new raffle to enter, waiting…');
+
+               progressBar = addProgress('', 0, botPanel);
+                var timer = 1;
+                setInterval(function () {
+                    updateProgress(progressBar, timer / (interval / 1000));
+                    timer ++;
+                },1000);
+
                 setTimeout(function() {
                     location.reload();
                 }, interval);
@@ -103,6 +123,8 @@
 
     function enterRaffles() {
         var deferred = jQuery.Deferred();
+
+        progressBar = addProgress('', 0, botPanel, 'success');
 
         function joinRaffle(url) {
 
@@ -124,7 +146,7 @@
                 if (isRaffleWorthIt(raffleSpecs)) {
 
                     if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
-                        console.info('Bot: Entrering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                        showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                         $(responseData).find('button#raffle-enter').click();
 
@@ -136,23 +158,13 @@
                             hash: hash
                         };
 
-                        ScrapTF.Ajax('viewraffle/EnterRaffle', {
-                            raffle: id,
-                            captcha: '',
-                            rafflekey: raffleKey,
-                            password: '',
-                            hash: hash
-                        }, function() {
-                            console.info('Bot: Done entering raffle');
-
-                            raffleDeferred.resolve();
+                        ScrapTF.Ajax('viewraffle/EnterRaffle', request, function() {
+                            raffleDeferred.resolve('Done entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                         }, function(data) {
-                            console.warn('Bot: Error when entering raffle: ' + raffleKey + ' ' + (raffleIndex + 1) + '/' + todoRaffleList.length, data);
 
                             if (data.captcha) {
                                 showIcon('Warning');
-                                showNotification('Bot: Error when entering raffle:\nCaptcha requested!', 'https://scrap.tf/raffles/' + id);
-                                console.warn('Bot: Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY / 60 + 'minutes…');
+                                showNotification('Error when entering raffle:\nCaptcha requested!', 'https://scrap.tf/raffles/' + id);
 
                                 todoRaffleList.forEach(function(url) {
                                     window.open(url);
@@ -162,24 +174,27 @@
                                     location.reload();
                                 }, ERROR_RELOAD_DELAY * 1000);
 
-                                raffleDeferred.reject();
+                                raffleDeferred.reject('Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY / 60 + 'minutes…');
                             } else {
-                                raffleDeferred.resolve();
+                                raffleDeferred.resolve('Error when entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length + ' - ' + data.message);
                             }
                         });
 
                     } else {
-                        console.info('Bot: Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
-                        raffleDeferred.resolve();
+                        raffleDeferred.resolve('Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length + ' (no button to click)');
                     }
                 } else {
                     badRaffleList.push(url);
                     saveBadRaffleList(badRaffleList);
-                    console.info('Bot: it\'s not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
-                    raffleDeferred.resolve();
+                    raffleDeferred.resolve('Raffle not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                 }
 
-                $.when(raffleDeferred.promise()).then(function() {
+                $.when(raffleDeferred.promise()).then(function(message) {
+
+                    showMessage(message);
+
+                    updateProgress(progressBar, (raffleIndex + 1) / todoRaffleList.length, (raffleIndex + 1) + '/' + todoRaffleList.length);
+
                     raffleIndex++;
                     if (raffleIndex < todoRaffleList.length) {
                         setTimeout(function() {
@@ -205,7 +220,7 @@
             ar = value.match(/[0-9]+/gi),
             raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
 
-        console.info('Bot: ' + value + ', There is ' + raffleToEnterNumber + ' raffle(s) open with ' + badRaffleList.length + ' raffles not worth it…');
+        showMessage('There is ' + raffleToEnterNumber + ' raffle(s) open.');
 
         return (ar.length > 1 && raffleToEnterNumber > 0);
     }
@@ -253,7 +268,7 @@
         if (Notification.permission === "granted") {
             var notification = new Notification('Notification', {
                 icon: 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAADAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABwAAAAcAAAADAAAAmwAHCcIACQvCAAkLwgAJC8IACQvCAAkLwgAJDMIACQzCAAkMwgAJDMIACQzCAAkMwgAJDMIACArDAAAAmwAAAGsAbIf4AMz//wDM//8AzP//AMz//wDM//8Auun/AK/b/wDM//8AzP//AMz//wDM//8AzP//AGyH+QAAAGsAAAAZAA0QtgC24/8AzP//AMz//wDM//8AzP//Ai86/wMLDf8AwvP/AMz//wDM//8AzP//ALfk/wAOEbgAAAAZAAAAAAAAAFAAT2LqAMz//wDM//8AzP//AMz//wF/n/8CYXn/AMv+/wDM//8AzP//AMz//wBRZesAAABSAAAAAAAAAAAAAAAIAAIDngCcw/8AzP//AMz//wDM//8AeZj/AHSR/wDM//8AzP//AMz//wCfx/8AAwShAAAACQAAAAAAAAAAAAAAAAAAADgAMDzYAMr8/wDM//8AzP//ACQt/wAbIv8AzP//AMz//wDL/f8ANEHbAAAAOwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAfQB9nP4AzP//AMz//wAcI/8AFBj/AMz//wDM//8AgqP+AAAAggAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMAGB7DAL/v/wDM//8AFBn/AA0Q/wDL/v8AwvL/ABwjyAAAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXwBgePMAy/7/AA0Q/wAHCf8Ayfv/AGaA9gAAAGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEABwisAKvV/wAPE/8ACgz/AK7Z/wAKDLIAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARgBCUuIAn8f/AJzD/wBLXecAAABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAGRAI+y/wCZv/8AAQKbAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALwAlLtAALTnWAAAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABvAAAAeQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAACAAQAAwAMAAMADAADgBwAA8A8AAPAPAAD4HwAA+B8AAPw/AAD8PwAA/n8AAA==',
-                body: msg,
+                body: msg
             });
             notification.onclick = function() {
                 window.open(link);
@@ -278,23 +293,23 @@
 
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
-                var isHat = function() {
+                var isHat = function(data) {
                         // any cosmetic or taunt
                         return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
                     },
-                    isMetal = function() {
+                    isMetal = function(data) {
                         // any metal or key
                         return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Reclaimed Metal') || data.attr('data-title').match('Refined Metal') || data.attr('data-title').match('Key') || data.attr('data-title').match('Ticket'));
                     },
-                    haveFeature = function() {
+                    haveFeature = function(data) {
                         var classes = data.attr('class');
                         // killstreak or rare or vintage or genuine or strange or unusuals or token
                         return classes.match('killstreak') || classes.match('rarity') || classes.match('quality3') || classes.match('quality1') || classes.match('quality11') || classes.match('quality5') || classes.match('token');
                     },
-                    haveColor = function() {
+                    haveColor = function(data) {
                         return $(data).find('div.paintcolor').length > 0 || $(data).find('img.festive').length > 0;
                     },
-                    isSpecials = isMetal() || isHat() || haveFeature() || haveColor();
+                    isSpecials = isMetal(data) || isHat(data) || haveFeature(data) || haveColor(data);
 
                 if (isSpecials) {
                     raffle.haveSpecials = true;
@@ -330,6 +345,42 @@
         if (haveStorageSupport) {
             localStorage.badRaffleList = JSON.stringify(list);
         }
+    }
+
+    function createBotPanel(){
+        var panel = $('<div class="panel panel-info"><div class="panel-body">Bot: <span class="botMessage"></span></div></div>');
+
+        $('div.panel-info').before(panel);
+
+        return panel;
+    }
+
+    function addProgress( text, percent, botPanel, type) {
+
+        if(!type){
+            type = 'info';
+        }
+        var progress = $('<div class="progress"><div class="progress-bar progress-bar-'+ type +'" role="progressbar" aria-valuenow="'+percent*100+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percent*100+'%;">'+text+'</div></div>');
+
+        botPanel.find('.botMessage').after(progress);
+
+        return progress;
+    }
+
+    function updateProgress(progress, percent, text) {
+        progress.find('div.progress-bar').attr('aria-valuenow',percent * 100);
+        progress.find('div.progress-bar').css('width',percent*100+'%');
+
+        if(text){
+            progress.find('div.progress-bar').text(text);
+        }
+    }
+
+    function showMessage(message) {
+
+        botPanel.find('span.botMessage').text(message);
+
+        console.info(message);
     }
 
 })();
