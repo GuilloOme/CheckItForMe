@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.43
+// @version      0.44
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -135,6 +135,8 @@
                 hash = hashArg;
             };
 
+            showMessage('Checking raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+            
             $.get(url, function(responseData) {
 
                 var request,
