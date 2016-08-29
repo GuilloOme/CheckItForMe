@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.44
+// @version      0.45
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -161,7 +161,7 @@
                         };
 
                         ScrapTF.Ajax('viewraffle/EnterRaffle', request, function() {
-                            raffleDeferred.resolve('Done entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                            raffleDeferred.resolve('Done entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length, true);
                         }, function(data) {
 
                             if (data.captcha) {
@@ -191,17 +191,22 @@
                     raffleDeferred.resolve('Raffle not worth it: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
                 }
 
-                $.when(raffleDeferred.promise()).then(function(message) {
-
+                $.when(raffleDeferred.promise()).then(function(message, haveToWait) {
+                    var interval = randomInterval();
+                    
                     showMessage(message);
 
                     updateProgress(progressBar, (raffleIndex + 1) / todoRaffleList.length, (raffleIndex + 1) + '/' + todoRaffleList.length);
+
+                    if(haveToWait){
+                        interval = randomInterval(ENTERING_DELAY);
+                    }
 
                     raffleIndex++;
                     if (raffleIndex < todoRaffleList.length) {
                         setTimeout(function() {
                             joinRaffle(todoRaffleList[raffleIndex]);
-                        }, randomInterval(ENTERING_DELAY));
+                        }, interval);
                     } else {
                         deferred.resolve();
                     }
