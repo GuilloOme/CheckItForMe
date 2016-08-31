@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.45
+// @version      0.46
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -357,7 +357,7 @@
     function createBotPanel(){
         var panel = $('<div class="panel panel-info"><div class="panel-body">Bot: <span class="botMessage"></span></div></div>');
 
-        $('div.panel-info').before(panel);
+        $('body>div.container').prepend(panel);
 
         return panel;
     }
