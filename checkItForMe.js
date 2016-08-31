@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.47
+// @version      0.48
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -11,7 +11,7 @@
 (function() {
     'use strict';
 
-    var RELOAD_DELAY = 60,
+    var RELOAD_DELAY = 50,
         ERROR_RELOAD_DELAY = 300,
         ENTERING_DELAY = 3,
         TOTAL_ENTRY_THRESHOLD = 300,
@@ -69,12 +69,12 @@
         } else {
             showMessage('No new raffle to enter, waiting…');
 
-           progressBar = addProgress('', 0, botPanel);
-            var timer = 1;
+            progressBar = addProgress('', 0, botPanel);
+            var timer = 1000;
             setInterval(function () {
-                updateProgress(progressBar, timer / (interval / 1000));
-                timer += .5;
-            },500);
+                updateProgress(progressBar, timer / interval);
+                timer += 250;
+            },250);
 
             setTimeout(function() {
                 location.reload();
@@ -106,12 +106,12 @@
             } else {
                 showMessage('No new raffle to enter, waiting…');
 
-               progressBar = addProgress('', 0, botPanel);
-                var timer = 1;
+                progressBar = addProgress('', 0, botPanel);
+                var timer = 1000;
                 setInterval(function () {
-                    updateProgress(progressBar, timer / (interval / 1000));
-                    timer ++;
-                },1000);
+                    updateProgress(progressBar, timer / interval);
+                    timer += 250;
+                },250);
 
                 setTimeout(function() {
                     location.reload();
@@ -136,7 +136,7 @@
             };
 
             showMessage('Checking raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
-            
+
             $.get(url, function(responseData) {
 
                 var request,
@@ -193,7 +193,7 @@
 
                 $.when(raffleDeferred.promise()).then(function(message, haveToWait) {
                     var interval = randomInterval();
-                    
+
                     showMessage(message);
 
                     updateProgress(progressBar, (raffleIndex + 1) / todoRaffleList.length, (raffleIndex + 1) + '/' + todoRaffleList.length);
@@ -301,9 +301,9 @@
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
                 var isHat = function(data) {
-                        // any cosmetic or taunt
-                        return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
-                    },
+                    // any cosmetic or taunt
+                    return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
+                },
                     isMetal = function(data) {
                         // any metal or key
                         return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Reclaimed Metal') || data.attr('data-title').match('Refined Metal') || data.attr('data-title').match('Key') || data.attr('data-title').match('Ticket'));
@@ -391,3 +391,4 @@
     }
 
 })();
+
