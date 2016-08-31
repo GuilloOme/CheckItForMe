@@ -16,7 +16,35 @@
         ENTERING_DELAY = 3,
         TOTAL_ENTRY_THRESHOLD = 300,
         RAFFLE_COUNT_THRESHOLD = 15,
-        TIME_LEFT_THRESHOLD = 3600; // in sec: 5400 = 1½hour
+        TIME_LEFT_THRESHOLD = 3600, // in sec: 5400 = 1½hour
+        ITEM_WEIGHT = {
+            part: {
+                reinforced: 0.05,
+                battleWorn: 2,
+                pristine: 4
+            },
+            metal: {
+                scrap: 1,
+                reclaimed: 3,
+                refined: 9
+            },
+            uncraftable: 0.01,
+            unique: 0.5,
+            fabricator: 1,
+            vintage: 3,
+            genuine: 3,
+            gift: 9,
+            rare: 9,
+            strange: 18,
+            cosmetic: 18,
+            colored: 18,
+            festive: 18,
+            killstreak: 27,
+            taunt: 36,
+            key: 180,
+            ticket: 180,
+            unusual: 1000
+        };
 
     var todoRaffleList = [],
         badRaffleList = [],
@@ -31,11 +59,11 @@
         botPanel = createBotPanel();
 
         showMessage('Started');
-        if (Notification.permission !== "granted") {
+        if (Notification.permission !== 'granted') {
             Notification.requestPermission();
         }
 
-        if (typeof(Storage) !== "undefined") {
+        if (typeof(Storage) !== 'undefined') {
             haveStorageSupport = true;
 
             // initiate the locals
@@ -71,7 +99,7 @@
 
             progressBar = addProgress('', 0, botPanel);
             var timer = 1000;
-            setInterval(function () {
+            setInterval(function() {
                 updateProgress(progressBar, timer / interval);
                 timer += 250;
             },250);
@@ -141,7 +169,7 @@
 
                 var request,
                     raffleDeferred = jQuery.Deferred(),
-                    raffleKey = $(responseData).find("#raffle-key").val(),
+                    raffleKey = $(responseData).find('#raffle-key').val(),
                     enterButton = $(responseData).find('button#raffle-enter'),
                     raffleSpecs = getRaffleSpecs(responseData);
 
@@ -272,7 +300,7 @@
     }
 
     function showNotification(msg, link) {
-        if (Notification.permission === "granted") {
+        if (Notification.permission === 'granted') {
             var notification = new Notification('Notification', {
                 icon: 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAADAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABwAAAAcAAAADAAAAmwAHCcIACQvCAAkLwgAJC8IACQvCAAkLwgAJDMIACQzCAAkMwgAJDMIACQzCAAkMwgAJDMIACArDAAAAmwAAAGsAbIf4AMz//wDM//8AzP//AMz//wDM//8Auun/AK/b/wDM//8AzP//AMz//wDM//8AzP//AGyH+QAAAGsAAAAZAA0QtgC24/8AzP//AMz//wDM//8AzP//Ai86/wMLDf8AwvP/AMz//wDM//8AzP//ALfk/wAOEbgAAAAZAAAAAAAAAFAAT2LqAMz//wDM//8AzP//AMz//wF/n/8CYXn/AMv+/wDM//8AzP//AMz//wBRZesAAABSAAAAAAAAAAAAAAAIAAIDngCcw/8AzP//AMz//wDM//8AeZj/AHSR/wDM//8AzP//AMz//wCfx/8AAwShAAAACQAAAAAAAAAAAAAAAAAAADgAMDzYAMr8/wDM//8AzP//ACQt/wAbIv8AzP//AMz//wDL/f8ANEHbAAAAOwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAfQB9nP4AzP//AMz//wAcI/8AFBj/AMz//wDM//8AgqP+AAAAggAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMAGB7DAL/v/wDM//8AFBn/AA0Q/wDL/v8AwvL/ABwjyAAAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXwBgePMAy/7/AA0Q/wAHCf8Ayfv/AGaA9gAAAGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEABwisAKvV/wAPE/8ACgz/AK7Z/wAKDLIAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARgBCUuIAn8f/AJzD/wBLXecAAABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAGRAI+y/wCZv/8AAQKbAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALwAlLtAALTnWAAAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABvAAAAeQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAACAAQAAwAMAAMADAADgBwAA8A8AAPAPAAD4HwAA+B8AAPw/AAD8PwAA/n8AAA==',
                 body: msg
@@ -301,9 +329,9 @@
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
                 var isHat = function(data) {
-                    // any cosmetic or taunt
-                    return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
-                },
+                        // any cosmetic or taunt
+                        return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
+                    },
                     isMetal = function(data) {
                         // any metal or key
                         return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Reclaimed Metal') || data.attr('data-title').match('Refined Metal') || data.attr('data-title').match('Key') || data.attr('data-title').match('Ticket'));
@@ -362,12 +390,12 @@
         return panel;
     }
 
-    function addProgress( text, percent, botPanel, type) {
+    function addProgress(text, percent, botPanel, type) {
 
-        if(!type){
+        if (!type) {
             type = 'info';
         }
-        var progress = $('<div class="progress"><div class="progress-bar progress-bar-'+ type +'" role="progressbar" aria-valuenow="'+percent*100+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percent*100+'%;">'+text+'</div></div>');
+        var progress = $('<div class="progress"><div class="progress-bar progress-bar-' + type + '" role="progressbar" aria-valuenow="' + percent * 100 + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percent * 100 + '%;">' + text + '</div></div>');
 
         botPanel.find('.botMessage').after(progress);
 
@@ -378,7 +406,7 @@
         progress.find('div.progress-bar').attr('aria-valuenow',percent * 100);
         progress.find('div.progress-bar').css('width',percent*100+'%');
 
-        if(text){
+        if (text) {
             progress.find('div.progress-bar').text(text);
         }
     }
