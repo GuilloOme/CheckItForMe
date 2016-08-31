@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CheckItForMe
-// @version      0.46
+// @version      0.47
 // @match        https://scrap.tf/raffles
 // @match        https://scrap.tf/raffles/ending
 // @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
@@ -73,8 +73,8 @@
             var timer = 1;
             setInterval(function () {
                 updateProgress(progressBar, timer / (interval / 1000));
-                timer ++;
-            },1000);
+                timer += .5;
+            },500);
 
             setTimeout(function() {
                 location.reload();
