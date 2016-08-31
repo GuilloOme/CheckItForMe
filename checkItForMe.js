@@ -18,32 +18,35 @@
         RAFFLE_COUNT_THRESHOLD = 15,
         TIME_LEFT_THRESHOLD = 3600, // in sec: 5400 = 1½hour
         ITEM_WEIGHT = {
-            part: {
-                reinforced: 0.05,
-                battleWorn: 2,
-                pristine: 4
-            },
-            metal: {
-                scrap: 1,
-                reclaimed: 3,
-                refined: 9
-            },
-            uncraftable: 0.01,
-            unique: 0.5,
-            fabricator: 1,
-            vintage: 3,
-            genuine: 3,
-            gift: 9,
-            rare: 9,
-            strange: 18,
-            cosmetic: 18,
-            colored: 18,
-            festive: 18,
-            killstreak: 27,
-            taunt: 36,
-            key: 180,
-            ticket: 180,
-            unusual: 1000
+            //MVM Parts
+            reinforcedPart: {weight: 0.05, title: 'Reinforced '},
+            battleWornPart: {weight: 2, title: 'Battle-Worn '},
+            pristinePart: {weight: 4, title: 'Pristine '},
+
+            // Metal
+            scrapMetal: {weight: 1, title: 'Scrap Metal'},
+            reclaimedMetal: {weight: 3, title: 'Reclaimed Metal'},
+            refinedMetal: {weight: 9, title: 'Refined Metal'},
+
+            token: {weight: 1.5, class: 'token'},
+
+            uncraftable: {weight: 0.01, class: 'uncraft'},
+            action: {weight: 1, slot: 'action'},
+            unique: {weight: 0.5, class: 'quality6'},
+            fabricator: {weight: 1, title: 'Fabricator'},
+            vintage: {weight: 3, class: 'quality3'},
+            genuine: {weight: 3, class: 'quality1'},
+            gift: {weight: 9, title: 'Gift'},
+            rare: {weight: 9, class: 'rarity'},
+            strange: {weight: 18, class: 'quality11'},
+            cosmetic: {weight: 18, slot: 'misc'},
+            colored: {weight: 18, content: 'div.paintcolor'},
+            festive: {weight: 18, content: 'img.festive'},
+            killstreak: {weight: 27, class: 'killstreak'},
+            taunt: {weight: 45, slot: 'taunt'},
+            key: {weight: 180, title: 'Key'},
+            ticket: {weight: 180, title: 'Ticket'},
+            unusual: {weight: 1000, class: 'quality5'}
         };
 
     var todoRaffleList = [],
