@@ -1,39 +1,26 @@
-// ==UserScript==
-// @name         CheckItForMe
-// @version      0.48
-// @match        https://scrap.tf/raffles
-// @match        https://scrap.tf/raffles/ending
-// @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=
-// @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/checkItForMe.js
-// @grant        none
-// ==/UserScript==
-
 (function() {
     'use strict';
 
+    var Raffle = require('./raffle.service').RaffleService,
+        Interval = require('./interval.helper').IntervalHelper,
+        UI = require('./ui.helper').UIHelper;
+
     var RELOAD_DELAY = 50,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 3,
-        TOTAL_ENTRY_THRESHOLD = 300,
-        RAFFLE_COUNT_THRESHOLD = 15,
-        TIME_LEFT_THRESHOLD = 3600; // in sec: 5400 = 1½hour
+        ENTERING_DELAY = 3;
 
-    var todoRaffleList = [],
-        badRaffleList = [],
+    var todoRaffleList = Raffle.goodList,
+        badRaffleList = Raffle.badList,
         raffleIndex = 0,
-        interval = randomInterval(RELOAD_DELAY),
-        haveStorageSupport = false,
-        botPanel,
-        progressBar;
+        interval = Interval.randomInterval(RELOAD_DELAY),
+        haveStorageSupport = false;
+
 
     $(document).ready(function() {
 
-        botPanel = createBotPanel();
+        UI.createBotPanel();
 
-        showMessage('Started');
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+        UI.showMessage('Started');
 
         if (typeof(Storage) !== "undefined") {
             haveStorageSupport = true;
@@ -47,44 +34,17 @@
                 console.warn('Purging bad raffle cache!');
                 saveBadRaffleList([]);
             } else {
-                badRaffleList = JSON.parse(localStorage.badRaffleList);
+                badRaffleList = badRaffleList.concat(JSON.parse(localStorage.badRaffleList));
             }
         }
 
-        if (parseInt($('.user-notices-count').html()) > 0) {
-            showMessage('There is new message(s)!');
-            showIcon('Ok');
+        if (UI.getUserNoticeCount() > 0) {
+            UI.showMessage('There is new message(s)!');
+            UI.showIcon('Ok');
         }
 
 
-        scanHash();
-    });
-
-    function scanHash() {
-        var url = window.location.href,
-            baseUrl = /https:\/\/scrap.tf\/raffles/;
-
-        if (url.match(baseUrl) && isThereNewRaffles()) {
-            scanRaffles();
-        } else {
-            showMessage('No new raffle to enter, waiting…');
-
-            progressBar = addProgress('', 0, botPanel);
-            var timer = 1000;
-            setInterval(function () {
-                updateProgress(progressBar, timer / interval);
-                timer += 250;
-            },250);
-
-            setTimeout(function() {
-                location.reload();
-            }, interval);
-        }
-
-    }
-
-    function scanRaffles() {
-        showMessage('Loading all the raffles…');
+        UI.showMessage('Loading all the raffles…');
 
         $.when(loadAllRaffles()).then(function() {
             var activePanel = $('div.panel');
@@ -97,19 +57,19 @@
             });
 
             if (todoRaffleList.length > 0) {
-                //showMessage('Start entering raffles.');
+                //UI.showMessage('Start entering raffles.');
 
                 $.when(enterRaffles()).then(function() {
-                    //showMessage('Done entering raffles, reloading…');
+                    //UI.showMessage('Done entering raffles, reloading…');
                     location.reload();
                 });
             } else {
-                showMessage('No new raffle to enter, waiting…');
+                UI.showMessage('No new raffle to enter, waiting…');
 
-                progressBar = addProgress('', 0, botPanel);
+                UI.addProgress('', 0);
                 var timer = 1000;
                 setInterval(function () {
-                    updateProgress(progressBar, timer / interval);
+                    UI.updateProgress(timer / interval);
                     timer += 250;
                 },250);
 
@@ -119,12 +79,12 @@
             }
         });
 
-    }
+    });
 
     function enterRaffles() {
         var deferred = jQuery.Deferred();
 
-        progressBar = addProgress('', 0, botPanel, 'success');
+        UI.addProgress('', 0, 'success');
 
         function joinRaffle(url) {
 
@@ -135,7 +95,7 @@
                 hash = hashArg;
             };
 
-            showMessage('Checking raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+            UI.showMessage('Checking raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
             $.get(url, function(responseData) {
 
@@ -145,10 +105,10 @@
                     enterButton = $(responseData).find('button#raffle-enter'),
                     raffleSpecs = getRaffleSpecs(responseData);
 
-                if (isRaffleWorthIt(raffleSpecs)) {
+                if (Raffle.isRaffleWorthIt(raffleSpecs)) {
 
                     if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
-                        showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
+                        UI.showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                         $(responseData).find('button#raffle-enter').click();
 
@@ -166,11 +126,6 @@
 
                             if (data.captcha) {
                                 showIcon('Warning');
-                                showNotification('Error when entering raffle:\nCaptcha requested!', 'https://scrap.tf/raffles/' + id);
-
-                                todoRaffleList.forEach(function(url) {
-                                    window.open(url);
-                                });
 
                                 setTimeout(function() {
                                     location.reload();
@@ -192,14 +147,14 @@
                 }
 
                 $.when(raffleDeferred.promise()).then(function(message, haveToWait) {
-                    var interval = randomInterval();
+                    var interval = Interval.randomInterval();
 
-                    showMessage(message);
+                    UI.showMessage(message);
 
-                    updateProgress(progressBar, (raffleIndex + 1) / todoRaffleList.length, (raffleIndex + 1) + '/' + todoRaffleList.length);
+                    UI.updateProgress((raffleIndex + 1) / todoRaffleList.length, (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                     if(haveToWait){
-                        interval = randomInterval(ENTERING_DELAY);
+                        interval = Interval.randomInterval(ENTERING_DELAY);
                     }
 
                     raffleIndex++;
@@ -221,17 +176,6 @@
         return deferred.promise();
     }
 
-    function isThereNewRaffles() {
-
-        var value = $('div.panel-body>div.text-center>i18n>var').text(),
-            ar = value.match(/[0-9]+/gi),
-            raffleToEnterNumber = (parseInt(ar[1]) - parseInt(ar[0]));
-
-        showMessage('There is ' + raffleToEnterNumber + ' raffle(s) open.');
-
-        return (ar.length > 1 && raffleToEnterNumber > 0);
-    }
-
     function loadAllRaffles() {
         var deferred = jQuery.Deferred();
 
@@ -244,44 +188,10 @@
                 clearInterval(loadInterval);
             }
 
-        }, randomInterval());
+        }, Interval.randomInterval());
 
         return deferred.promise();
 
-    }
-
-    function randomInterval(delay) {
-        if (!delay) {
-            delay = 0.5;
-        }
-        return Math.floor(delay * 1000) + Math.floor(Math.random() * (delay * 1000));
-    }
-
-    function showIcon(iconType) {
-        var iconLink = '';
-
-        if (iconType === 'Ok') {
-            iconLink = '<link href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAG0QYXBtEGTQbRBk8G0QZPBtEGTwbRBk8G0QZPBtEGTwbRBkkG0QYKAAAAAAAAAAAAAAAAAAAAAAAAAAAG0QYQBtEG5wbRBv8G0Qb/BtEG/wbRBv8G0Qb/BtEG/wbRBv8G0Qb/BtEGwAXRBQAAAAAAAAAAAAAAAAAAAAAABtEGOQbRBv/J9cn/z/bP/6bvpv9/53//nO2c/53tnf/u/O7/l+yX/wbRBvkF0QUHAAAAAAAAAAAAAAAAAAAAAAbRBjoG0Qb/2/jb/yjXKP8G0Qb/EdMR/0zeTP9C3EL/6vvq/6TupP8G0Qb5BdEFCAAAAAAAAAAAAAAAAAAAAAAG0QY6BtEG/9v42/8l1yX/BtEG/xHTEf9M3kz/Nto2/7Xxtf+k7qT/BtEG+QXRBQgAAAAAAAAAAAAAAAAAAAAABtEGOgbRBv/b+Nv/jeqN/xjUGP8S0xL/TN5M/zfaN//F9MX/pO6k/wbRBvkF0QUIAAAAAAAAAAAAAAAAAAAAAAbRBjoG0Qb/2/jb//////+B6IH/FNQU/8X0xf+9873/9v32/6TupP8G0Qb5BdEFCAAAAAAAAAAAAAAAAAAAAAAG0QY6BtEG/9v42///////6vvq/w/TD//z/fP///////////+k7qT/BtEG+QXRBQgAAAAAAAAAAAAAAAAAAAAABtEGOQbRBv/T99P/+f75//n++f+b7Zv/9f31//n++f/5/vn/nu2e/wbRBvkF0QUIAAAAAAAAAAAAAAAAAAAAAAbRBhMG0QbtB9EH/wjRCP8I0Qj/CNEI/wjRCP8I0Qj/CNEI/wfRB/8G0QbHBdEFAQAAAAAAAAAAAAAAAAAAAAAAAAAABtEGHwbRBlsG0QZdBtEGXQbRBl0G0QZdBtEGXQbRBl0G0QZWBtEGDwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAP//AAD//wAA4AcAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAOAHAAD//wAA//8AAA==" rel="icon" type="image/x-icon">';
-        } else if (iconType === 'Warning') {
-            iconLink = '<link href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAADAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABwAAAAcAAAADAAAAmwAHCcIACQvCAAkLwgAJC8IACQvCAAkLwgAJDMIACQzCAAkMwgAJDMIACQzCAAkMwgAJDMIACArDAAAAmwAAAGsAbIf4AMz//wDM//8AzP//AMz//wDM//8Auun/AK/b/wDM//8AzP//AMz//wDM//8AzP//AGyH+QAAAGsAAAAZAA0QtgC24/8AzP//AMz//wDM//8AzP//Ai86/wMLDf8AwvP/AMz//wDM//8AzP//ALfk/wAOEbgAAAAZAAAAAAAAAFAAT2LqAMz//wDM//8AzP//AMz//wF/n/8CYXn/AMv+/wDM//8AzP//AMz//wBRZesAAABSAAAAAAAAAAAAAAAIAAIDngCcw/8AzP//AMz//wDM//8AeZj/AHSR/wDM//8AzP//AMz//wCfx/8AAwShAAAACQAAAAAAAAAAAAAAAAAAADgAMDzYAMr8/wDM//8AzP//ACQt/wAbIv8AzP//AMz//wDL/f8ANEHbAAAAOwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAfQB9nP4AzP//AMz//wAcI/8AFBj/AMz//wDM//8AgqP+AAAAggAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMAGB7DAL/v/wDM//8AFBn/AA0Q/wDL/v8AwvL/ABwjyAAAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXwBgePMAy/7/AA0Q/wAHCf8Ayfv/AGaA9gAAAGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEABwisAKvV/wAPE/8ACgz/AK7Z/wAKDLIAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARgBCUuIAn8f/AJzD/wBLXecAAABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAGRAI+y/wCZv/8AAQKbAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALwAlLtAALTnWAAAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABvAAAAeQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAACAAQAAwAMAAMADAADgBwAA8A8AAPAPAAD4HwAA+B8AAPw/AAD8PwAA/n8AAA==" rel="icon" type="image/x-icon">';
-        }
-
-        $('link[rel*="icon"]').remove();
-        $('head').append(iconLink);
-
-    }
-
-    function showNotification(msg, link) {
-        if (Notification.permission === "granted") {
-            var notification = new Notification('Notification', {
-                icon: 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAAAAAADAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAGAAAABwAAAAcAAAADAAAAmwAHCcIACQvCAAkLwgAJC8IACQvCAAkLwgAJDMIACQzCAAkMwgAJDMIACQzCAAkMwgAJDMIACArDAAAAmwAAAGsAbIf4AMz//wDM//8AzP//AMz//wDM//8Auun/AK/b/wDM//8AzP//AMz//wDM//8AzP//AGyH+QAAAGsAAAAZAA0QtgC24/8AzP//AMz//wDM//8AzP//Ai86/wMLDf8AwvP/AMz//wDM//8AzP//ALfk/wAOEbgAAAAZAAAAAAAAAFAAT2LqAMz//wDM//8AzP//AMz//wF/n/8CYXn/AMv+/wDM//8AzP//AMz//wBRZesAAABSAAAAAAAAAAAAAAAIAAIDngCcw/8AzP//AMz//wDM//8AeZj/AHSR/wDM//8AzP//AMz//wCfx/8AAwShAAAACQAAAAAAAAAAAAAAAAAAADgAMDzYAMr8/wDM//8AzP//ACQt/wAbIv8AzP//AMz//wDL/f8ANEHbAAAAOwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAfQB9nP4AzP//AMz//wAcI/8AFBj/AMz//wDM//8AgqP+AAAAggAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMAGB7DAL/v/wDM//8AFBn/AA0Q/wDL/v8AwvL/ABwjyAAAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXwBgePMAy/7/AA0Q/wAHCf8Ayfv/AGaA9gAAAGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEABwisAKvV/wAPE/8ACgz/AK7Z/wAKDLIAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARgBCUuIAn8f/AJzD/wBLXecAAABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAGRAI+y/wCZv/8AAQKbAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALwAlLtAALTnWAAAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABvAAAAeQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAACAAQAAwAMAAMADAADgBwAA8A8AAPAPAAD4HwAA+B8AAPw/AAD8PwAA/n8AAA==',
-                body: msg
-            });
-            notification.onclick = function() {
-                window.open(link);
-                notification.close();
-            };
-        }
     }
 
     function getRaffleSpecs(responseData) {
@@ -330,64 +240,12 @@
         return raffle;
     }
 
-    function isRaffleWorthIt(raffle) {
-        var isIt = false;
 
-        if (raffle.count > 0) {
-            if (raffle.haveSpecials) {
-                isIt = true;
-            } else if (raffle.totalEntries <= TOTAL_ENTRY_THRESHOLD) {
-                isIt = true;
-            } else if (raffle.count >= RAFFLE_COUNT_THRESHOLD) {
-                isIt = true;
-            } else if (raffle.timeLeft < TIME_LEFT_THRESHOLD) {
-                isIt = true;
-            }
-        }
-
-        return isIt;
-    }
 
     function saveBadRaffleList(list) {
         if (haveStorageSupport) {
             localStorage.badRaffleList = JSON.stringify(list);
         }
-    }
-
-    function createBotPanel(){
-        var panel = $('<div class="panel panel-info"><div class="panel-body">Bot: <span class="botMessage"></span></div></div>');
-
-        $('body>div.container').prepend(panel);
-
-        return panel;
-    }
-
-    function addProgress( text, percent, botPanel, type) {
-
-        if(!type){
-            type = 'info';
-        }
-        var progress = $('<div class="progress"><div class="progress-bar progress-bar-'+ type +'" role="progressbar" aria-valuenow="'+percent*100+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percent*100+'%;">'+text+'</div></div>');
-
-        botPanel.find('.botMessage').after(progress);
-
-        return progress;
-    }
-
-    function updateProgress(progress, percent, text) {
-        progress.find('div.progress-bar').attr('aria-valuenow',percent * 100);
-        progress.find('div.progress-bar').css('width',percent*100+'%');
-
-        if(text){
-            progress.find('div.progress-bar').text(text);
-        }
-    }
-
-    function showMessage(message) {
-
-        botPanel.find('span.botMessage').text(message);
-
-        console.info(message);
     }
 
 })();
