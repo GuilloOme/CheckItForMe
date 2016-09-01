@@ -60,13 +60,31 @@
             return parseInt($('.user-notices-count').html());
         }
 
+        function checkAttribute(data, key, value) {
+            var attrMapping = {
+                    title: 'data-title',
+                    slot: 'data-slot',
+                    class: 'class'
+                },
+                result = false;
+
+            if (key === 'content') {
+                result = ($(data).find(value).length > 0);
+            } else {
+                result = !!data.attr(attrMapping[key]).match(value);
+            }
+
+            return result;
+        }
+        
         return {
             createBotPanel: createBotPanel,
             showMessage: showMessage,
             showIcon: showIcon,
             addProgress: addProgress,
             updateProgress: updateProgress,
-            getUserNoticeCount: getUserNoticeCount
+            getUserNoticeCount: getUserNoticeCount,
+            checkAttribute: checkAttribute
         };
     }
 

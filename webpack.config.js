@@ -24,8 +24,11 @@
                         '// @grant        none',
                         '// ==/UserScript=='
                     ].join('\n'),
-                    {raw: true, entryOnly: true})
-
+                    {
+                        raw: true,
+                        entryOnly: true
+                    }
+                )
             ]
         };
     module.exports = config;

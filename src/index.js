@@ -7,38 +7,7 @@
 
     var RELOAD_DELAY = 50,
         ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 3,
-        ITEM_WEIGHT = {
-            //MVM Parts
-            reinforcedPart: {weight: 0.05, title: 'Reinforced '},
-            battleWornPart: {weight: 2, title: 'Battle-Worn '},
-            pristinePart: {weight: 4, title: 'Pristine '},
-
-            // Metal
-            scrapMetal: {weight: 1, title: 'Scrap Metal'},
-            reclaimedMetal: {weight: 3, title: 'Reclaimed Metal'},
-            refinedMetal: {weight: 9, title: 'Refined Metal'},
-
-            token: {weight: 1.5, class: 'token'},
-
-            uncraftable: {weight: 0.01, class: 'uncraft'},
-            action: {weight: 1, slot: 'action'},
-            unique: {weight: 0.5, class: 'quality6'},
-            fabricator: {weight: 1, title: 'Fabricator'},
-            vintage: {weight: 3, class: 'quality3'},
-            genuine: {weight: 3, class: 'quality1'},
-            gift: {weight: 9, title: 'Gift'},
-            rare: {weight: 9, class: 'rarity'},
-            strange: {weight: 18, class: 'quality11'},
-            cosmetic: {weight: 18, slot: 'misc'},
-            colored: {weight: 18, content: 'div.paintcolor'},
-            festive: {weight: 18, content: 'img.festive'},
-            killstreak: {weight: 27, class: 'killstreak'},
-            taunt: {weight: 45, slot: 'taunt'},
-            key: {weight: 180, title: 'Key'},
-            ticket: {weight: 180, title: 'Ticket'},
-            unusual: {weight: 1000, class: 'quality5'}
-        };
+        ENTERING_DELAY = 3;
 
     var todoRaffleList = Raffle.goodList,
         badRaffleList = Raffle.badList,
@@ -241,25 +210,8 @@
 
             //it's a tf2 item
             if (data.attr('data-appid') === '440') {
-                var isHat = function (data) {
-                        // any cosmetic or taunt
-                        return data.attr('data-slot') === 'misc' || data.attr('data-slot') === 'taunt';
-                    },
-                    isMetal = function (data) {
-                        // any metal or key
-                        return data.attr('data-slot') === 'all' && (data.attr('data-title').match('Reclaimed Metal') || data.attr('data-title').match('Refined Metal') || data.attr('data-title').match('Key') || data.attr('data-title').match('Ticket'));
-                    },
-                    haveFeature = function (data) {
-                        var classes = data.attr('class');
-                        // killstreak or rare or vintage or genuine or strange or unusuals or token
-                        return classes.match('killstreak') || classes.match('rarity') || classes.match('quality3') || classes.match('quality1') || classes.match('quality11') || classes.match('quality5') || classes.match('token');
-                    },
-                    haveColor = function (data) {
-                        return $(data).find('div.paintcolor').length > 0 || $(data).find('img.festive').length > 0;
-                    },
-                    isSpecials = isMetal(data) || isHat(data) || haveFeature(data) || haveColor(data);
 
-                if (isSpecials) {
+                if (Raffle.isItemSpecial(data)) {
                     raffle.haveSpecials = true;
                 }
 
