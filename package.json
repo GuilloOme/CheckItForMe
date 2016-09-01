@@ -1,0 +1,22 @@
+{
+  "name": "check-it-for-me",
+  "version": "0.0.1",
+  "description": "CheckItForMe will check it for you!",
+  "main": "index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuilloOme/CheckItForMe.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GuilloOme/CheckItForMe/issues"
+  },
+  "dependencies": {
+    "webpack": "^1.13.2"
+  }
+}
