@@ -51,9 +51,10 @@
             $(activePanel[activePanel.length - 1]).find('div.panel-raffle').each(function (id, item) {
                 var url = $(item).find('div.raffle-name > a').attr('href');
 
-                if ($(item).css('opacity') === '1' && badRaffleList.indexOf(url) < 0) {
+                // DEBUG: check everything
+                // if ($(item).css('opacity') === '1' && badRaffleList.indexOf(url) < 0) {
                     todoRaffleList.push(url);
-                }
+                // }
             });
 
             if (todoRaffleList.length > 0) {
@@ -104,11 +105,11 @@
                 var request,
                     raffleDeferred = jQuery.Deferred(),
                     raffleKey = $(responseData).find("#raffle-key").val(),
-                    enterButton = $(responseData).find('button#raffle-enter'),
-                    raffleSpecs = getRaffleSpecs(responseData);
+                    enterButton = $(responseData).find('button#raffle-enter');
 
-                if (Raffle.isRaffleWorthIt(raffleSpecs)) {
-                    if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
+                if (Raffle.isRaffleWorthIt(responseData)) {
+                    // DEBUG: Do not enter!!
+                    if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle' && false) {
                         UI.showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
                         $(responseData).find('button#raffle-enter').click();
@@ -194,36 +195,6 @@
         return deferred.promise();
 
     }
-
-    function getRaffleSpecs(responseData) {
-        var itemsData = $(responseData).find('.raffle-items>div'),
-            raffle = {
-                timeLeft: Math.floor((parseInt($(responseData).find('dd.raffle-time-left').attr('data-time')) - (new Date().getTime() / 1000))),
-                winChance: parseInt($(responseData).find('#raffle-win-chance').html()),
-                totalEntries: parseInt($(responseData).find('span#raffle-num-entries').attr('data-max')),
-                haveSpecials: false, //metal or hats or featured items
-                count: 0
-            };
-
-        for (var i = 0; i <= itemsData.length; i++) {
-
-            var data = $(itemsData[i]);
-
-            //it's a tf2 item
-            if (data.attr('data-appid') === '440') {
-
-                if (Raffle.isItemSpecial(data)) {
-                    raffle.haveSpecials = true;
-                }
-
-                raffle.count++;
-            }
-
-        }
-
-        return raffle;
-    }
-
 
     function saveBadRaffleList(list) {
         if (haveStorageSupport) {

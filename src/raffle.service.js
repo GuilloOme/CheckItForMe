@@ -45,15 +45,16 @@
         var goodRaffleList = [],
             badRaffleList = [];
 
-        function isRaffleWorthIt(raffle) {
-            var isIt = false;
+        function isRaffleWorthIt(data) {
+            var raffle = _getRaffleSpecs(data),
+                isIt = false;
 
-            if (raffle.count > 0) {
+            if (raffle.itemCount > 0) {
                 if (raffle.haveSpecials) {
                     isIt = true;
                 } else if (raffle.totalEntries <= TOTAL_ENTRY_THRESHOLD) {
                     isIt = true;
-                } else if (raffle.count >= RAFFLE_COUNT_THRESHOLD) {
+                } else if (raffle.itemCount >= RAFFLE_COUNT_THRESHOLD) {
                     isIt = true;
                 } else if (raffle.timeLeft < TIME_LEFT_THRESHOLD) {
                     isIt = true;
@@ -63,23 +64,55 @@
             return isIt;
         }
 
-        function isItemSpecial(data) {
+        function _getRaffleSpecs(responseData) {
+            var itemsData = $(responseData).find('.raffle-items>div'),
+                raffle = {
+                    timeLeft: Math.floor((parseInt($(responseData).find('dd.raffle-time-left').attr('data-time')) - (new Date().getTime() / 1000))),
+                    winChance: parseFloat($(responseData).find('#raffle-win-chance').html()),
+                    totalEntries: parseInt($(responseData).find('span#raffle-num-entries').attr('data-max')),
+                    haveSpecials: false, //metal or hats or featured items
+                    itemCount: 0,
+                    items: []
+                };
+
+            for (var i = 0; i <= itemsData.length; i++) {
+
+                var data = $(itemsData[i]);
+
+                //it's a tf2 item
+                if (data.attr('data-appid') === '440') {
+
+                    if (_isItemSpecial(data)) {
+                        raffle.haveSpecials = true;
+                    }
+
+                    raffle.itemCount++;
+                }
+
+            }
+
+            return raffle;
+        }
+
+        function _getItemWeight(data) {
             var weight = 0;
             ITEM_WEIGHT.forEach(function (wt) {
                 if (UI.checkAttribute(data, wt.type, wt.value)) {
                     weight += wt.weight;
-                    }
+                }
             });
             //by default it's a unique
             if (weight === 0) {
                 weight = 0.5;
             }
-            return (weight >= WEIGHT_THRESHOLD);
+        }
+
+        function _isItemSpecial(data) {
+            return (_getItemWeight(data) >= WEIGHT_THRESHOLD);
         }
 
         return {
             isRaffleWorthIt: isRaffleWorthIt,
-            isItemSpecial: isItemSpecial,
             goodList: goodRaffleList,
             badList: badRaffleList
         };
