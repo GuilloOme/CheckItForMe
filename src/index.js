@@ -61,7 +61,9 @@
 
                 $.when(enterRaffles()).then(function () {
                     //UI.showMessage('Done entering raffles, reloading…');
-                    location.reload();
+                    // DEBUG:
+                    console.log('no reload');
+                    //location.reload();
                 });
             } else {
                 UI.showMessage('No new raffle to enter, waiting…');
@@ -106,7 +108,6 @@
                     raffleSpecs = getRaffleSpecs(responseData);
 
                 if (Raffle.isRaffleWorthIt(raffleSpecs)) {
-
                     if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
                         UI.showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + todoRaffleList.length);
 
