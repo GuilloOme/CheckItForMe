@@ -31,7 +31,8 @@
         {name: 'vintage', weight: 3, type: 'class', value: 'quality3 '},
         {name: 'genuine', weight: 3, type: 'class', value: 'quality1 '},
         {name: 'colored', weight: 18, type: 'content', value: 'div.paintcolor'},
-        {name: 'festive', weight: 18, type: 'content', value: 'img.festive'},
+        {name: 'festive on rare', weight: 18, type: 'content', value: 'img.festive'},
+        {name: 'festive', weight: 18, type: 'title', value: 'Festive '},
         {name: 'killstreak', weight: 27, type: 'class', value: 'killstreak'}
     ];
 
