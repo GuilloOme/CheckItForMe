@@ -20,7 +20,7 @@
                         '// @version      0.50',
                         '// @match        https://scrap.tf/raffles',
                         '// @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44',
-                        '// @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckThisForMe/master/dist/check-it-for-me.js',
+                        '// @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckItForMe/master/dist/check-it-for-me.js',
                         '// @grant        none',
                         '// ==/UserScript=='
                     ].join('\n'),
