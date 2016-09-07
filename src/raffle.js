@@ -36,9 +36,9 @@
         {name: 'killstreak', weight: 27, type: 'class', value: 'killstreak'}
     ];
 
-    var TOTAL_ENTRY_THRESHOLD = 300,
-        RAFFLE_COUNT_THRESHOLD = 15,
-        TIME_LEFT_THRESHOLD = 3600, // in sec: 5400 = 1½hour
+    var TOTAL_ENTRY_THRESHOLD = 200,
+        RAFFLE_COUNT_THRESHOLD = 10,
+        TIME_LEFT_THRESHOLD = 2700, // in sec: 5400 = 1½hour
         AVERAGE_WEIGHT_THRESHOLD = 1.5,
         WEIGHT_THRESHOLD = 18;
 
