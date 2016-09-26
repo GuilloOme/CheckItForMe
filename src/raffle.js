@@ -28,8 +28,8 @@
         {name: 'unusual', weight: 1000, type: 'class', value: 'quality5 '},
 
         {name: 'rare', weight: 9, type: 'class', value: 'rarity'},
-        {name: 'vintage', weight: 3, type: 'class', value: 'quality3 '},
-        {name: 'genuine', weight: 3, type: 'class', value: 'quality1 '},
+        {name: 'vintage', weight: 1, type: 'class', value: 'quality3 '},
+        {name: 'genuine', weight: 1, type: 'class', value: 'quality1 '},
         {name: 'colored', weight: 18, type: 'content', value: 'div.paintcolor'},
         {name: 'festive on rare', weight: 18, type: 'content', value: 'img.festive'},
         {name: 'festive', weight: 18, type: 'title', value: 'Festive '},
@@ -37,7 +37,7 @@
     ];
 
     var TOTAL_ENTRY_THRESHOLD = 200,
-        RAFFLE_COUNT_THRESHOLD = 10,
+        RAFFLE_COUNT_THRESHOLD = 15,
         TIME_LEFT_THRESHOLD = 2700, // in sec: 5400 = 1½hour
         AVERAGE_WEIGHT_THRESHOLD = 1.5,
         WEIGHT_THRESHOLD = 18;

@@ -5,12 +5,16 @@
         Interval = require('./interval.helper').IntervalHelper,
         UI = require('./ui.helper').UIHelper;
 
-    var RELOAD_DELAY = 40;
+    var RELOAD_DELAY = 40,
+        SAFE_RELOAD_DELAY = 180;
 
     var interval = Interval.randomInterval(RELOAD_DELAY);
 
 
     $(document).ready(function () {
+
+        // start the safe reload routine
+        Interval.safeReloadRoutine(SAFE_RELOAD_DELAY + RELOAD_DELAY);
 
         UI.createBotPanel();
 

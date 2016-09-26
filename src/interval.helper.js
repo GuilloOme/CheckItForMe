@@ -9,9 +9,15 @@
             return Math.floor(delay * 1000) + Math.floor(Math.random() * (delay * 1000));
         }
 
-        return {
+        function safeReloadRoutine(delay) {
+            setTimeout(function () {
+                location.reload();
+            }, delay * 1000);
+        }
 
-            randomInterval: randomInterval
+        return {
+            randomInterval: randomInterval,
+            safeReloadRoutine: safeReloadRoutine
         };
     }
 
