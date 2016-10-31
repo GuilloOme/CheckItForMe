@@ -17,7 +17,7 @@
                     [
                         '// ==UserScript==',
                         '// @name         CheckItForMe',
-                        '// @version      0.53',
+                        '// @version      0.54',
                         '// @match        https://scrap.tf/raffles',
                         '// @require      https://code.jquery.com/jquery-2.2.4.min.js#sha256=BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44',
                         '// @updateURL    https://raw.githubusercontent.com/GuilloOme/CheckItForMe/master/dist/check-it-for-me.js',
