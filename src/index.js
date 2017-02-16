@@ -2,19 +2,16 @@
     'use strict';
 
     var RafflesService = require('./raffles.service').RafflesService,
+        Config = require('./config.service').ConfigService,
         Interval = require('./interval.helper').IntervalHelper,
         UI = require('./ui.helper').UIHelper;
 
-    var RELOAD_DELAY = 30,
-        SAFE_RELOAD_DELAY = 180;
-
-    var interval = Interval.randomInterval(RELOAD_DELAY);
-
-
     $(document).ready(function () {
 
+        var config = Config.getConfig();
+
         // start the safe reload routine
-        Interval.safeReloadRoutine(SAFE_RELOAD_DELAY + RELOAD_DELAY);
+        Interval.safeReloadRoutine(config.delay.safeReload + config.delay.reload);
 
         UI.createBotPanel();
 
@@ -50,7 +47,7 @@
                 });
             } else {
 
-                var interval = Interval.randomInterval(RELOAD_DELAY),
+                var interval = Interval.randomInterval(config.delay.reload),
                     timer = 1000;
 
                 UI.showMessage('No new raffle to enter, waiting…');

@@ -3,17 +3,16 @@
 
     var Raffle = require('./raffle').Raffle,
         Storage = require('./storage.service').StorageService,
+        Config = require('./config.service').ConfigService,
         Interval = require('./interval.helper').IntervalHelper,
         UI = require('./ui.helper').UIHelper;
-
-    var ERROR_RELOAD_DELAY = 300,
-        ENTERING_DELAY = 3;
 
     function RafflesService() {
 
         var goodRaffleList = [],
             badRaffleList = Storage.extract('badRaffleList') || [],
-            raffleIndex = 0;
+            raffleIndex = 0,
+            config = Config.getConfig();
 
 
         function enterRaffles() {
@@ -46,32 +45,37 @@
                     if (enterButton.length > 0 && $(responseData).find('button#raffle-enter>i18n').html() === 'Enter Raffle') {
                         UI.showMessage('Entering raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length);
 
-                        $(responseData).find('button#raffle-enter').click();
+                        if (!config.blankRun) {
+                            $(responseData).find('button#raffle-enter').click();
 
-                        request = {
-                            raffle: raffleId,
-                            captcha: '',
-                            rafflekey: raffleKey,
-                            password: '',
-                            hash: raffleHash
-                        };
+                            request = {
+                                raffle: raffleId,
+                                captcha: '',
+                                rafflekey: raffleKey,
+                                password: '',
+                                hash: raffleHash
+                            };
 
-                        ScrapTF.Ajax('viewraffle/EnterRaffle', request, function () {
-                            raffleDeferred.resolve('Done entering raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length, true);
-                        }, function (data) {
+                            ScrapTF.Ajax('viewraffle/EnterRaffle', request, function () {
+                                raffleDeferred.resolve('Done entering raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length, true);
+                            }, function (data) {
 
-                            if (data.captcha) {
-                                showIcon('Warning');
+                                if (data.captcha) {
+                                    showIcon('Warning');
 
-                                setTimeout(function () {
-                                    location.reload();
-                                }, ERROR_RELOAD_DELAY * 1000);
+                                    setTimeout(function () {
+                                        location.reload();
+                                    }, config.delay.errorReload * 1000);
 
-                                raffleDeferred.reject('Captcha requested! Reloading in ' + ERROR_RELOAD_DELAY / 60 + 'minutes…');
-                            } else {
-                                raffleDeferred.resolve('Error when entering raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length + ' - ' + data.message);
-                            }
-                        });
+                                    raffleDeferred.reject('Captcha requested! Reloading in ' + config.delay.errorReload / 60 + 'minutes…');
+                                } else {
+                                    raffleDeferred.resolve('Error when entering raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length + ' - ' + data.message);
+                                }
+                            });
+
+                        } else {
+                            raffleDeferred.resolve('Blank run, did NOT enter raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length);
+                        }
 
                     } else {
                         raffleDeferred.resolve('Can\'t enter raffle: ' + (raffleIndex + 1) + '/' + goodRaffleList.length + ' (no button to click)');
@@ -90,7 +94,7 @@
                     UI.updateProgress((raffleIndex + 1) / goodRaffleList.length, (raffleIndex + 1) + '/' + goodRaffleList.length);
 
                     if (haveToWait) {
-                        interval = Interval.randomInterval(ENTERING_DELAY);
+                        interval = Interval.randomInterval(config.delay.entering);
                     }
 
                     raffleIndex++;

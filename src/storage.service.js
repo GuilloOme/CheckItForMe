@@ -2,7 +2,6 @@
     'use strict';
     function StorageService() {
 
-
         function store(key, value) {
             if (_haveStorageSupport()) {
                 localStorage[key] = JSON.stringify(value);
