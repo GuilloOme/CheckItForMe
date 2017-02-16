@@ -1,17 +1,18 @@
 (function () {
     'use strict';
     function StorageService() {
+        var prefix = 'cifm_';
 
         function store(key, value) {
             if (_haveStorageSupport()) {
-                localStorage[key] = JSON.stringify(value);
+                localStorage[prefix + key] = JSON.stringify(value);
             }
         }
 
         function extract(key) {
             var result = undefined;
-            if (_haveStorageSupport() && localStorage[key]) {
-                result = JSON.parse(localStorage[key]);
+            if (_haveStorageSupport() && typeof localStorage[prefix + key] !== "undefined") {
+                result = JSON.parse(localStorage[prefix + key]);
             }
 
             return result;

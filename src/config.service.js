@@ -1,7 +1,9 @@
 (function () {
     'use strict';
-    function ConfigService() {
 
+    var Storage = require('./storage.service').StorageService;
+
+    function ConfigService() {
         var defaults = {
                 delay: {
                     reload: 30, // after a complete load is complete
@@ -49,14 +51,25 @@
                     absoluteWeight: 18,
                     itemsCount: 15
                 },
-                blankRun: true
+                blankRun: true // run at blank or not
             },
             config = {},
             isInitialized = false;
 
         function getConfig() {
             if (!isInitialized) {
-                config = defaults;
+
+                Object.keys(defaults).forEach(function (key) {
+                    var configValue = Storage.extract(key);
+
+                    if (typeof configValue === "undefined") {
+                        Storage.store(key, defaults[key]);
+                        config[key] = defaults[key];
+                    } else {
+                        config[key] = configValue;
+                    }
+                });
+
                 isInitialized = true;
             }
             return config;
