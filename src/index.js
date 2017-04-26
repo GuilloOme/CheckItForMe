@@ -7,63 +7,69 @@
         UI = require('./ui.helper').UIHelper;
 
     $(document).ready(function () {
+        // if there is no bot prevention measure
+        if ($('div.panel>div.panel-heading>h3>i18n')[0].innerText !== 'Bot Prevention') {
 
-        var config = Config.getConfig();
+            var config = Config.getConfig();
 
-        // start the safe reload routine
-        Interval.safeReloadRoutine(config.delay.safeReload + config.delay.reload);
+            // start the safe reload routine
+            Interval.safeReloadRoutine(config.delay.safeReload + config.delay.reload);
 
-        UI.createBotPanel();
+            UI.createBotPanel();
 
-        UI.showMessage('Started');
+            UI.showMessage('Started');
 
+            if (UI.getUserNoticeCount() > 0) {
+                UI.showMessage('There is new message(s)!');
+                UI.showIcon('Ok');
+            }
 
-        if (UI.getUserNoticeCount() > 0) {
-            UI.showMessage('There is new message(s)!');
-            UI.showIcon('Ok');
-        }
+            UI.showMessage('Loading all the raffles…');
 
+            $.when(loadAllRafflesInPage()).then(function() {
+                var activePanel = $('div.panel');
+                // check for won raffles
+                // activePanel.each(function(id, item) {
+                //     var isWonRaffles = $(item).find('div.panel-heading > i18n').html() === 'Raffles you won';
+                // });
 
-        UI.showMessage('Loading all the raffles…');
+                $(activePanel[activePanel.length - 1]).find('div.panel-raffle').each(function(id, item) {
+                    var url = $(item).find('div.raffle-name > a').attr('href');
 
-        $.when(loadAllRafflesInPage()).then(function () {
-            var activePanel = $('div.panel');
-            $(activePanel[activePanel.length - 1]).find('div.panel-raffle').each(function (id, item) {
-                var url = $(item).find('div.raffle-name > a').attr('href');
+                    if ($(item).css('opacity') === '1' && RafflesService.badList.indexOf(url) < 0) {
+                        RafflesService.goodList.push(url);
+                    }
+                });
 
-                if ($(item).css('opacity') === '1' && RafflesService.badList.indexOf(url) < 0) {
-                    RafflesService.goodList.push(url);
+                if (RafflesService.goodList.length > 0) {
+                    //Start entering raffles
+
+                    UI.addProgress('', 0, 'success');
+
+                    $.when(RafflesService.enterRaffles()).then(function() {
+                        //Done entering raffles, reloading…
+                        location.reload();
+                    });
+                } else {
+
+                    var interval = Interval.randomInterval(config.delay.reload),
+                        timer = 1000;
+
+                    UI.showMessage('No new raffle to enter, waiting…');
+
+                    UI.addProgress('', 0);
+
+                    setInterval(function() {
+                        UI.updateProgress(timer / interval);
+                        timer += 250;
+                    }, 250);
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, interval);
                 }
             });
-
-            if (RafflesService.goodList.length > 0) {
-                //Start entering raffles
-
-                UI.addProgress('', 0, 'success');
-
-                $.when(RafflesService.enterRaffles()).then(function () {
-                    //Done entering raffles, reloading…
-                    location.reload();
-                });
-            } else {
-
-                var interval = Interval.randomInterval(config.delay.reload),
-                    timer = 1000;
-
-                UI.showMessage('No new raffle to enter, waiting…');
-
-                UI.addProgress('', 0);
-
-                setInterval(function () {
-                    UI.updateProgress(timer / interval);
-                    timer += 250;
-                }, 250);
-
-                setTimeout(function () {
-                    location.reload();
-                }, interval);
-            }
-        });
+        }
 
     });
 
@@ -82,7 +88,6 @@
         }, Interval.randomInterval());
 
         return deferred.promise();
-
     }
 
 })();

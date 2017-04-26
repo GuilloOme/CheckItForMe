@@ -26,14 +26,14 @@
                     {name: 'gift', weight: 9, type: 'title', value: 'Gift'},
                     {name: 'fabricator', weight: 1, type: 'title', value: 'Fabricator'},
                     {name: 'key', weight: 180, type: 'title', value: 'Key'},
-                    {name: 'taunt', weight: 45, type: 'slot', value: 'taunt'},
+                    {name: 'taunt', weight: 30, type: 'slot', value: 'taunt'},
                     {name: 'ticket', weight: 180, type: 'title', value: 'Ticket'},
                     {name: 'action', weight: 1, type: 'slot', value: 'action'},
-                    {name: 'cosmetic', weight: 18, type: 'slot', value: 'misc'},
+                    {name: 'cosmetic', weight: 9, type: 'slot', value: 'misc'},
 
                     {name: 'uncraftable', weight: 0.01, type: 'class', value: 'uncraft'},
                     // {name: 'unique', weight: 0.5, type: 'class', value: 'quality6 '},
-                    {name: 'strange', weight: 18, type: 'class', value: 'quality11 '},
+                    {name: 'strange', weight: 21, type: 'class', value: 'quality11 '},
                     {name: 'unusual', weight: 1000, type: 'class', value: 'quality5 '},
 
                     {name: 'rare', weight: 9, type: 'class', value: 'rarity'},
@@ -47,9 +47,9 @@
                 threshold: {
                     totalEntry: 200,
                     timeLeft: 2700, // in sec: 5400 = 1½hour
-                    averageWeight: 1.5,
-                    absoluteWeight: 18,
-                    itemsCount: 15
+                    averageWeight: 9,
+                    absoluteWeight: 21,
+                    itemsCount: 40
                 },
                 blankRun: true // run at blank or not
             },
